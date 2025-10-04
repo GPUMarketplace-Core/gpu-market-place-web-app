@@ -1,0 +1,139 @@
+erDiagram
+    %% --- SQL side (Postgres) ---
+    USERS ||--o| PROVIDERS : "is (1:0/1)"
+    USERS ||--o| CONSUMERS : "is (1:0/1)"
+    USERS ||--o{ NODES : "owns"
+    USERS ||--o{ ORDERS : "places"
+    USERS ||--o{ ORDERS : "fulfills"
+    ORDERS ||--o{ PAYMENTS : "has"
+    ORDERS ||--o{ JOBS : "includes"
+    JOBS ||--o{ JOB_RUNS : "retries"
+    ORDERS ||--o{ REVIEWS : "receives"
+
+    %% --- Mongo side (NoSQL) ---
+    NODES ||--o| NODE_SPECS : "describes" 
+    JOBS ||--o| JOB_CONFIGS : "has config"
+    JOB_RUNS ||--o| JOB_LOGS : "writes logs"
+    JOB_RUNS ||--o| JOB_METRICS : "writes metrics"
+
+    USERS {
+      uuid id PK
+      citext email
+      user_role role
+      text display_name
+      timestamptz created_at
+    }
+    PROVIDERS {
+      uuid user_id PK,FK
+      provider_status status
+      numeric rating_avg
+      int rating_count
+      text payout_account_id
+      text company_name
+      timestamptz created_at
+    }
+    CONSUMERS {
+      uuid user_id PK,FK
+      text default_currency
+      timestamptz created_at
+    }
+    NODES {
+      uuid id PK
+      uuid owner_user_id FK
+      text name
+      text os
+      text client_version
+      inet public_ip
+      text region
+      node_status status
+      timestamptz last_heartbeat_at
+      timestamptz created_at
+    }
+    ORDERS {
+      uuid id PK
+      uuid consumer_id FK
+      uuid provider_id FK
+      order_status status
+      text currency
+      int subtotal_cents
+      int fees_cents
+      int total_cents
+      timestamptz created_at
+    }
+    JOBS {
+      uuid id PK
+      uuid consumer_id FK
+      uuid provider_id FK
+      uuid node_id FK
+      uuid order_id FK
+      text title
+      job_status status
+      timestamptz submitted_at
+      timestamptz started_at
+      timestamptz finished_at
+      text config_ref "Mongo id"
+      text artifacts_ref "S3/IPFS/Mongo"
+      text failure_reason
+    }
+    JOB_RUNS {
+      uuid id PK
+      uuid job_id FK
+      int attempt_no
+      job_status status
+      uuid node_id FK
+      text logs_ref "Mongo id"
+      text metrics_ref "Mongo id"
+      timestamptz created_at
+      timestamptz started_at
+      timestamptz finished_at
+    }
+    PAYMENTS {
+      uuid id PK
+      uuid order_id FK
+      payment_status status
+      text gateway
+      text gateway_payment_intent_id
+      int amount_cents
+      text currency
+      timestamptz captured_at
+      timestamptz created_at
+    }
+    REVIEWS {
+      uuid id PK
+      uuid order_id FK
+      uuid rater_id FK
+      uuid ratee_id FK
+      int rating
+      text comment
+      timestamptz created_at
+    }
+
+    %% --- Mongo Collections ---
+    NODE_SPECS {
+      objectId _id PK
+      uuid node_id FK
+      array gpus "vendor, model, vram_gb, count, price_cents"
+      object cpu "model, cores"
+      int memory_gb
+      array storage "type, size_gb"
+      date updated_at
+    }
+    JOB_CONFIGS {
+      objectId _id PK
+      uuid job_id FK
+      text docker_image
+      text command
+      object resources "gpus, cpu_cores, mem_gb"
+      date updated_at
+    }
+    JOB_LOGS {
+      objectId _id PK
+      uuid job_run_id FK
+      array lines "ts, msg"
+    }
+    JOB_METRICS {
+      objectId _id PK
+      uuid job_run_id FK
+      object usage "gpu_util, gpu_mem_gb, cpu_pct"
+      object billing "seconds, rate_cents_per_hour, cost_cents"
+    }

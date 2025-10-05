@@ -9,6 +9,8 @@ export default function ProviderProfilePage() {
   const router = useRouter();
   const [provider, setProvider] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobsError, setJobsError] = useState<string | null>(null);
 
   // Ensure we have the latest user when navigating directly with a token in storage
   useEffect(() => {
@@ -30,6 +32,21 @@ export default function ProviderProfilePage() {
       }
     }
     fetchProfile();
+  }, [accessToken, user?.role]);
+
+  useEffect(() => {
+    async function fetchJobs() {
+      if (!accessToken || user?.role !== 'provider') return;
+      const res = await fetch('/api/providers/me/jobs?limit=20', { headers: { Authorization: `Bearer ${accessToken}` } });
+      if (res.ok) {
+        const data = await res.json();
+        setJobs(data.jobs || []);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setJobsError(data.error || 'Failed to load jobs');
+      }
+    }
+    fetchJobs();
   }, [accessToken, user?.role]);
 
   if (!accessToken) {
@@ -89,6 +106,38 @@ export default function ProviderProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Job History */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-3">Job History</h2>
+        {jobsError && <div className="text-sm text-red-600 mb-2">{jobsError}</div>}
+        {jobs.length === 0 ? (
+          <div className="text-sm text-gray-500">No jobs yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3">
+            {jobs.map((j) => (
+              <div key={j.id} className="rounded-lg border p-4 flex items-start justify-between">
+                <div>
+                  <div className="font-medium">{j.title}</div>
+                  <div className="text-xs text-gray-500 mt-1">Submitted: {new Date(j.submitted_at).toLocaleString()}</div>
+                  {j.started_at && <div className="text-xs text-gray-500">Started: {new Date(j.started_at).toLocaleString()}</div>}
+                  {j.finished_at && <div className="text-xs text-gray-500">Finished: {new Date(j.finished_at).toLocaleString()}</div>}
+                </div>
+                <div className="self-center">
+                  <span className={`text-xs px-2 py-1 rounded-full border ${
+                    j.status === 'succeeded' ? 'bg-green-50 text-green-700 border-green-200' :
+                    j.status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' :
+                    j.status === 'running' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                    'bg-gray-50 text-gray-700 border-gray-200'
+                  }`}>
+                    {j.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

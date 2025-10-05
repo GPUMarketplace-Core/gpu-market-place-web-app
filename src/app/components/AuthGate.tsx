@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import GoogleSignInButton from './GoogleSignInButton';
 import { useAuth } from '../providers/AuthProvider';
 import { me, signup } from '../lib/authClient';
@@ -14,6 +15,7 @@ export default function AuthGate() {
   const [companyName, setCompanyName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const router = useRouter();
 
   const isAuthed = useMemo(() => !!user, [user]);
 
@@ -52,6 +54,7 @@ export default function AuthGate() {
       if (meRes.ok) {
         const data = await meRes.json();
         setAuthState({ provider: 'google', accessToken, user: data.user });
+        if (data.user.role === 'provider') router.push('/providers');
       }
     } finally {
       setBusy(false);
@@ -134,7 +137,12 @@ export default function AuthGate() {
           {isAuthed && (
             <div className="flex flex-col gap-3">
               <div className="text-sm">Signed in as <span className="font-medium">{user?.email}</span> ({user?.role})</div>
-              <button className="rounded border px-3 py-2 text-sm" onClick={clear}>Logout</button>
+              <div className="flex gap-2">
+                <button className="rounded border px-3 py-2 text-sm" onClick={clear}>Logout</button>
+                {user?.role === 'provider' && (
+                  <button className="rounded border px-3 py-2 text-sm" onClick={() => router.push('/providers')}>Go to profile</button>
+                )}
+              </div>
             </div>
           )}
         </div>

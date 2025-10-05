@@ -2,11 +2,20 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../providers/AuthProvider';
+import { useRouter } from 'next/navigation';
 
 export default function ProviderProfilePage() {
-  const { accessToken, user } = useAuth();
+  const { accessToken, user, refreshUser, clear } = useAuth();
+  const router = useRouter();
   const [provider, setProvider] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Ensure we have the latest user when navigating directly with a token in storage
+  useEffect(() => {
+    if (accessToken && !user) {
+      void refreshUser();
+    }
+  }, [accessToken, user, refreshUser]);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -26,13 +35,29 @@ export default function ProviderProfilePage() {
   if (!accessToken) {
     return <div className="p-6 text-sm">Please sign in.</div>;
   }
-  if (user?.role !== 'provider') {
+
+  if (!user) {
+    return <div className="p-6 text-sm text-gray-500">Loading user…</div>;
+  }
+
+  if (user.role !== 'provider') {
     return <div className="p-6 text-sm">Only providers have a profile.</div>;
   }
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Provider Profile</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-semibold">Provider Profile</h1>
+        <button
+          className="text-sm px-3 py-2 rounded border"
+          onClick={() => {
+            clear();
+            router.push('/');
+          }}
+        >
+          Logout
+        </button>
+      </div>
       {error && <div className="text-sm text-red-600 mb-3">{error}</div>}
       {!provider ? (
         <div className="text-sm text-gray-500">Loading…</div>

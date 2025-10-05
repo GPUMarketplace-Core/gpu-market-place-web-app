@@ -30,6 +30,9 @@ export default function AuthGate() {
       } else if (res.ok) {
         const data = await res.json();
         setAuthState({ provider: 'google', accessToken: token, user: data.user });
+        if (data.user.role === 'provider') {
+          router.push('/providers');
+        }
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Login failed');
@@ -37,7 +40,7 @@ export default function AuthGate() {
     } finally {
       setBusy(false);
     }
-  }, [setAuthState]);
+  }, [setAuthState, router]);
 
   const doSignup = useCallback(async () => {
     if (!accessToken) return;
@@ -46,6 +49,16 @@ export default function AuthGate() {
     try {
       const res = await signup(accessToken, roleChoice, displayName || undefined, roleChoice === 'provider' ? companyName || undefined : undefined);
       if (!res.ok) {
+        if (res.status === 409) {
+          // Already registered: fetch user and redirect if provider
+          const meRes = await me(accessToken);
+          if (meRes.ok) {
+            const data = await meRes.json();
+            setAuthState({ provider: 'google', accessToken, user: data.user });
+            if (data.user.role === 'provider') router.push('/providers');
+          }
+          return;
+        }
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Signup failed');
         return;
@@ -59,7 +72,7 @@ export default function AuthGate() {
     } finally {
       setBusy(false);
     }
-  }, [accessToken, companyName, displayName, roleChoice, setAuthState]);
+  }, [accessToken, companyName, displayName, roleChoice, setAuthState, router]);
 
   return (
     <div className="relative flex w-full h-screen bg-white">

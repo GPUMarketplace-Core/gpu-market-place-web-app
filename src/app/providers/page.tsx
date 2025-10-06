@@ -123,7 +123,7 @@ export default function ProviderProfilePage() {
                   {j.started_at && <div className="text-xs text-gray-500">Started: {new Date(j.started_at).toLocaleString()}</div>}
                   {j.finished_at && <div className="text-xs text-gray-500">Finished: {new Date(j.finished_at).toLocaleString()}</div>}
                 </div>
-                <div className="self-center">
+                <div className="self-center flex items-center gap-3">
                   <span className={`text-xs px-2 py-1 rounded-full border ${
                     j.status === 'succeeded' ? 'bg-green-50 text-green-700 border-green-200' :
                     j.status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' :
@@ -132,6 +132,7 @@ export default function ProviderProfilePage() {
                   }`}>
                     {j.status}
                   </span>
+                  <a href={`/billing/${j.id}`} className="text-xs px-3 py-1.5 rounded border hover:bg-gray-50">Billing details</a>
                 </div>
               </div>
             ))}

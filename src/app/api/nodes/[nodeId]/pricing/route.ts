@@ -1,102 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToMongoDB } from '@/lib/db/mongodb';
-import { Binary } from 'mongodb';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ nodeId: string }> }
 ) {
   try {
+    const { hourly_price_cents } = await request.json();
     const { nodeId } = await params;
-    const body = await request.json();
-    const { gpuIndex, hourly_price_cents } = body;
-
-    // Validation
-    if (hourly_price_cents === undefined || hourly_price_cents === null) {
-      return NextResponse.json(
-        { error: 'Missing required field: hourly_price_cents' },
-        { status: 400 }
-      );
-    }
-
-    if (typeof hourly_price_cents !== 'number' || hourly_price_cents < 0) {
-      return NextResponse.json(
-        { error: 'hourly_price_cents must be a positive number' },
-        { status: 400 }
-      );
-    }
-
-    // Convert nodeId string to UUID Binary format
-    const uuidBuffer = Buffer.from(nodeId.replace(/-/g, ''), 'hex');
-    const nodeIdUUID = new Binary(uuidBuffer, Binary.SUBTYPE_UUID);
-
-    // Connect to MongoDB
+    
     const { db } = await connectToMongoDB();
     const nodeSpecsCollection = db.collection('node_specs');
 
-    // If gpuIndex is provided, update specific GPU in array
-    if (gpuIndex !== undefined && gpuIndex !== null) {
-      if (typeof gpuIndex !== 'number' || gpuIndex < 0) {
-        return NextResponse.json(
-          { error: 'gpuIndex must be a non-negative number' },
-          { status: 400 }
-        );
-      }
+    const result = await nodeSpecsCollection.updateOne(
+      {},
+      { $set: { "gpus.0.hourly_price_cents": hourly_price_cents } }
+    );
 
-      // Update specific GPU's price
-      const result = await nodeSpecsCollection.updateOne(
-        { node_id: nodeIdUUID },
-        {
-          $set: {
-            [`gpus.${gpuIndex}.hourly_price_cents`]: hourly_price_cents,
-            updated_at: new Date(),
-          },
-        }
-      );
-
-      if (result.matchedCount === 0) {
-        return NextResponse.json(
-          { error: 'Node specs not found' },
-          { status: 404 }
-        );
-      }
-
-      // Get updated document
-      const updatedSpec = await nodeSpecsCollection.findOne({ node_id: nodeIdUUID });
-
-      return NextResponse.json({
-        success: true,
-        message: `Updated GPU at index ${gpuIndex}`,
-        node_specs: updatedSpec,
-      });
-    } else {
-      // Update all GPUs to same price
-      const result = await nodeSpecsCollection.updateOne(
-        { node_id: nodeIdUUID },
-        {
-          $set: {
-            'gpus.$[].hourly_price_cents': hourly_price_cents,
-            updated_at: new Date(),
-          },
-        }
-      );
-
-      if (result.matchedCount === 0) {
-        return NextResponse.json(
-          { error: 'Node specs not found' },
-          { status: 404 }
-        );
-      }
-
-      // Get updated document
-      const updatedSpec = await nodeSpecsCollection.findOne({ node_id: nodeIdUUID });
-
-      return NextResponse.json({
-        success: true,
-        message: 'Updated all GPUs pricing',
-        node_specs: updatedSpec,
-      });
-    }
+    return NextResponse.json({
+      success: true,
+      message: 'Hourly rate updated successfully',
+      modifiedCount: result.modifiedCount
+    });
   } catch (error: any) {
     console.error('Update pricing error:', error);
     return NextResponse.json(

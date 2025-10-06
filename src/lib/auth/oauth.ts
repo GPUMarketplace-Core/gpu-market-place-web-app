@@ -19,7 +19,7 @@ export interface GitHubUser {
  */
 export async function verifyGoogleToken(token: string): Promise<GoogleTokenInfo | null> {
   try {
-    const response = await axios.get(
+    const { data } = await axios.get<GoogleTokenInfo>(
       `https://www.googleapis.com/oauth2/v3/userinfo`,
       {
         headers: {
@@ -27,7 +27,7 @@ export async function verifyGoogleToken(token: string): Promise<GoogleTokenInfo 
         },
       }
     );
-    return response.data;
+    return data;
   } catch (error) {
     console.error('Google token verification failed:', error);
     return null;
@@ -40,7 +40,7 @@ export async function verifyGoogleToken(token: string): Promise<GoogleTokenInfo 
 export async function verifyGitHubToken(token: string): Promise<GitHubUser | null> {
   try {
     // Get user info
-    const userResponse = await axios.get('https://api.github.com/user', {
+    const userResponse = await axios.get<GitHubUser>('https://api.github.com/user', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -48,13 +48,15 @@ export async function verifyGitHubToken(token: string): Promise<GitHubUser | nul
 
     // Get primary email if not public
     if (!userResponse.data.email) {
-      const emailResponse = await axios.get('https://api.github.com/user/emails', {
+      const emailResponse = await axios.get<Array<{ email: string; primary: boolean }>>('https://api.github.com/user/emails', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      const primaryEmail = emailResponse.data.find((e: any) => e.primary);
-      userResponse.data.email = primaryEmail?.email;
+      const primaryEmail = emailResponse.data.find((e) => e.primary);
+      if (primaryEmail) {
+        userResponse.data.email = primaryEmail.email;
+      }
     }
 
     return userResponse.data;

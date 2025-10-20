@@ -6,10 +6,10 @@ import { ConsumerModel } from '@/lib/models/Consumer';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userType: string; id: string } }
+  { params }: { params: Promise<{ userType: string; id: string }> }
 ) {
   try {
-    const { userType, id } = params;
+    const { userType, id } = await params;
 
     // Validate userType
     if (userType !== 'consumer' && userType !== 'provider') {

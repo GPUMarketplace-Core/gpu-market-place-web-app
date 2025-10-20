@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToMongoDB } from '@/lib/db/mongodb';
-import { Binary } from 'mongodb';
 
 // Create or update node specs
 export async function POST(
@@ -20,16 +19,12 @@ export async function POST(
       );
     }
 
-    // Convert nodeId string to UUID Binary format
-    const uuidBuffer = Buffer.from(nodeId.replace(/-/g, ''), 'hex');
-    const nodeIdUUID = new Binary(uuidBuffer, Binary.SUBTYPE_UUID);
-
     // Connect to MongoDB
     const { db } = await connectToMongoDB();
     const nodeSpecsCollection = db.collection('node_specs');
 
     // Check if specs already exist
-    const existingSpec = await nodeSpecsCollection.findOne({ node_id: nodeIdUUID });
+    const existingSpec = await nodeSpecsCollection.findOne({ node_id: nodeId });
 
     if (existingSpec) {
       return NextResponse.json(
@@ -40,7 +35,7 @@ export async function POST(
 
     // Create new node specs
     const nodeSpec = {
-      node_id: nodeIdUUID,
+      node_id: nodeId,
       gpus: gpus,
       cpu: cpu || null,
       memory_gb: memory_gb || 0,
@@ -78,15 +73,11 @@ export async function GET(
   try {
     const { nodeId } = await params;
 
-    // Convert nodeId string to UUID Binary format
-    const uuidBuffer = Buffer.from(nodeId.replace(/-/g, ''), 'hex');
-    const nodeIdUUID = new Binary(uuidBuffer, Binary.SUBTYPE_UUID);
-
     // Connect to MongoDB
     const { db } = await connectToMongoDB();
     const nodeSpecsCollection = db.collection('node_specs');
 
-    const nodeSpec = await nodeSpecsCollection.findOne({ node_id: nodeIdUUID });
+    const nodeSpec = await nodeSpecsCollection.findOne({ node_id: nodeId });
 
     if (!nodeSpec) {
       return NextResponse.json(

@@ -77,6 +77,14 @@ export class ProviderModel {
       client.release();
     }
   }
+
+  static async create(userId: string, companyName?: string | null): Promise<void> {
+    await pool.query(
+      `INSERT INTO providers (user_id, company_name) VALUES ($1, $2)
+       ON CONFLICT (user_id) DO NOTHING`,
+      [userId, companyName || null]
+    );
+  }
 }
 
 

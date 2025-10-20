@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToMongoDB } from '@/lib/db/mongodb';
-import { Binary } from 'mongodb';
 
 export async function PATCH(
   request: NextRequest,
@@ -26,10 +25,6 @@ export async function PATCH(
       );
     }
 
-    // Convert nodeId string to UUID Binary format
-    const uuidBuffer = Buffer.from(nodeId.replace(/-/g, ''), 'hex');
-    const nodeIdUUID = new Binary(uuidBuffer, Binary.SUBTYPE_UUID);
-
     // Connect to MongoDB
     const { db } = await connectToMongoDB();
     const nodeSpecsCollection = db.collection('node_specs');
@@ -45,7 +40,7 @@ export async function PATCH(
 
       // Update specific GPU's price
       const result = await nodeSpecsCollection.updateOne(
-        { node_id: nodeIdUUID },
+        { node_id: nodeId },
         {
           $set: {
             [`gpus.${gpuIndex}.hourly_price_cents`]: hourly_price_cents,
@@ -62,7 +57,7 @@ export async function PATCH(
       }
 
       // Get updated document
-      const updatedSpec = await nodeSpecsCollection.findOne({ node_id: nodeIdUUID });
+      const updatedSpec = await nodeSpecsCollection.findOne({ node_id: nodeId });
 
       return NextResponse.json({
         success: true,
@@ -72,7 +67,7 @@ export async function PATCH(
     } else {
       // Update all GPUs to same price
       const result = await nodeSpecsCollection.updateOne(
-        { node_id: nodeIdUUID },
+        { node_id: nodeId },
         {
           $set: {
             'gpus.$[].hourly_price_cents': hourly_price_cents,
@@ -89,7 +84,7 @@ export async function PATCH(
       }
 
       // Get updated document
-      const updatedSpec = await nodeSpecsCollection.findOne({ node_id: nodeIdUUID });
+      const updatedSpec = await nodeSpecsCollection.findOne({ node_id: nodeId });
 
       return NextResponse.json({
         success: true,

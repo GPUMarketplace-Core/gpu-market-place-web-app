@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { UserModel } from '@/lib/models/User';
 import { verifyOAuthToken } from '@/lib/auth/oauth';
 
+/**
+ * POST /api/signup - Create a new user account
+ *
+ * This endpoint is used for user registration. For login, use GET /api/me.
+ *
+ * Authentication Flow:
+ * 1. Signup: POST /api/signup (creates new user with OAuth token)
+ * 2. Login: GET /api/me (validates OAuth token and returns user data)
+ * 3. Validation: GET /api/auth/validate (checks if token is valid)
+ *
+ * Session Management:
+ * - OAuth tokens are stored in localStorage on the client
+ * - Tokens persist across browser sessions
+ * - No server-side session storage (stateless authentication)
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

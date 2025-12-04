@@ -32,6 +32,8 @@ export default function AuthGate() {
         setAuthState({ provider: 'google', accessToken: token, user: data.user });
         if (data.user.role === 'provider') {
           router.push('/providers');
+        } else if (data.user.role === 'consumer') {
+          router.push('/consumers');
         }
       } else {
         const data = await res.json().catch(() => ({}));
@@ -55,7 +57,11 @@ export default function AuthGate() {
           if (meRes.ok) {
             const data = await meRes.json();
             setAuthState({ provider: 'google', accessToken, user: data.user });
-            if (data.user.role === 'provider') router.push('/providers');
+            if (data.user.role === 'provider') {
+              router.push('/providers');
+            } else if (data.user.role === 'consumer') {
+              router.push('/consumers');
+            }
           }
           return;
         }
@@ -67,7 +73,11 @@ export default function AuthGate() {
       if (meRes.ok) {
         const data = await meRes.json();
         setAuthState({ provider: 'google', accessToken, user: data.user });
-        if (data.user.role === 'provider') router.push('/providers');
+        if (data.user.role === 'provider') {
+          router.push('/providers');
+        } else if (data.user.role === 'consumer') {
+          router.push('/consumers');
+        }
       }
     } finally {
       setBusy(false);
@@ -154,6 +164,9 @@ export default function AuthGate() {
                 <button className="rounded border px-3 py-2 text-sm" onClick={clear}>Logout</button>
                 {user?.role === 'provider' && (
                   <button className="rounded border px-3 py-2 text-sm" onClick={() => router.push('/providers')}>Go to profile</button>
+                )}
+                {user?.role === 'consumer' && (
+                  <button className="rounded border px-3 py-2 text-sm" onClick={() => router.push('/consumers')}>Dashboard</button>
                 )}
               </div>
             </div>

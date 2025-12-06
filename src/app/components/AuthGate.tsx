@@ -105,23 +105,30 @@ export default function AuthGate() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="relative flex w-full h-screen bg-white">
-      {/* Left: Background image in rounded container with white margins */}
-      <div className="hidden md:flex w-3/5 h-full items-center justify-center">
-        <div className="relative w-[90%] h-[92%] rounded-3xl overflow-hidden shadow-sm">
-          <div className="absolute inset-0" style={{ backgroundImage: 'url(/signup_background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-          <div className="absolute inset-0 bg-blue-700/10"></div>
+    <div className="relative flex w-full h-screen bg-gradient-to-br from-violet-50 via-fuchsia-50 to-pink-50 overflow-hidden">
+      {/* Animated background blobs */}
+      <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-to-r from-violet-400 to-purple-300 rounded-full mix-blend-normal filter blur-3xl opacity-30 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-96 h-96 bg-gradient-to-r from-fuchsia-400 to-pink-300 rounded-full mix-blend-normal filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-r from-cyan-400 to-blue-300 rounded-full mix-blend-normal filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
 
-          {/* Top title */}
-          <div className="absolute left-12 top-20 text-white">
-            <div className="font-mono text-4xl md:text-5xl mb-3">Welcome to OpenGPU</div>
-            <div className="text-base tracking-wide">Rent Powerful GPU by the Hour</div>
+      {/* Left: Background image in rounded container with white margins */}
+      <div className="hidden md:flex w-3/5 h-full items-center justify-center relative z-10">
+        <div className="relative w-[90%] h-[92%] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-700 hover:scale-[1.02]">
+          <div className="absolute inset-0" style={{ backgroundImage: 'url(/signup_background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-900/40 via-fuchsia-900/30 to-pink-900/40"></div>
+
+          {/* Top title with animation */}
+          <div className="absolute left-12 top-20 text-white animate-fade-in-up">
+            <div className="font-bold text-4xl md:text-5xl mb-3">
+              Welcome to OpenGPU
+            </div>
+            <div className="text-base tracking-wide text-violet-100">Rent Powerful GPU by the Hour</div>
           </div>
 
-          {/* Bottom section */}
-          <div className="absolute left-12 bottom-24 text-white max-w-xl">
-            <div className="font-mono text-3xl md:text-4xl mb-4">On-Demand GPU Power</div>
-            <p className="text-base leading-7">
+          {/* Bottom section with animation */}
+          <div className="absolute left-12 bottom-24 text-white max-w-xl animate-fade-in-up animation-delay-300">
+            <div className="font-bold text-3xl md:text-4xl mb-4">On-Demand GPU Power</div>
+            <p className="text-base leading-7 text-violet-50">
               Run AI, rendering, and research works on community GPUs - fast, secure, and affordable
             </p>
           </div>
@@ -129,33 +136,37 @@ export default function AuthGate() {
       </div>
 
       {/* Right: Auth area */}
-      <div className="relative flex-1 h-full">
-        <div className="mx-auto mt-16 md:mt-24 w-[360px] md:w-[420px]">
+      <div className="relative flex-1 h-full z-10 flex items-center justify-center">
+        <div className={`w-[360px] md:w-[420px] animate-fade-in transition-all duration-500 ${accessToken && !isAuthed && authMode === 'signup' ? 'mt-8' : ''}`}>
           {/* Brand */}
-          <div className="mb-4 flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-indigo-600 text-white flex items-center justify-center text-sm font-bold">S</div>
-            <div className="text-[20px] font-semibold">OpenGPU</div>
+          <div className="mb-6 flex items-center gap-2 group cursor-pointer">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 text-white flex items-center justify-center text-[10px] font-bold shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+              OG
+            </div>
+            <div className="text-[22px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600">
+              OpenGPU
+            </div>
           </div>
 
           {/* Tabs */}
           <div className="mb-8">
-            <div className="inline-flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1">
+            <div className="inline-flex items-center rounded-2xl border border-gray-200 bg-white/60 backdrop-blur-sm p-1.5 shadow-sm">
               <button
                 onClick={() => setAuthMode('signup')}
-                className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                className={`px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ${
                   authMode === 'signup'
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 Sign Up
               </button>
               <button
                 onClick={() => setAuthMode('login')}
-                className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                className={`px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ${
                   authMode === 'login'
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 Log In
@@ -182,12 +193,16 @@ export default function AuthGate() {
 
           {/* Signup form after token, if needed */}
           {accessToken && !isAuthed && authMode === 'signup' && (
-            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-6 shadow-sm">
+            <div className="bg-white/80 backdrop-blur-md border border-indigo-200 rounded-2xl p-6 shadow-xl animate-slide-in-up">
               <div className="flex items-center gap-2 mb-5">
-                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div className="text-base font-semibold text-gray-900">Complete Your Profile</div>
+                <div className="p-2 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg">
+                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="text-base font-semibold text-gray-900">
+                  Complete Your Profile
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -199,34 +214,46 @@ export default function AuthGate() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => setRoleChoice('consumer')}
-                      className={`p-4 rounded-xl border-2 transition-all ${
+                      className={`p-5 rounded-2xl border-2 transition-all duration-300 transform ${
                         roleChoice === 'consumer'
-                          ? 'border-indigo-600 bg-indigo-50 shadow-sm'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                          ? 'border-violet-500 bg-gradient-to-br from-violet-50 to-fuchsia-50 shadow-lg scale-105'
+                          : 'border-gray-200 bg-white hover:border-violet-200 hover:shadow-md hover:scale-102'
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-2">
-                        <svg className={`w-6 h-6 ${roleChoice === 'consumer' ? 'text-indigo-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                        </svg>
-                        <span className={`text-sm font-medium ${roleChoice === 'consumer' ? 'text-indigo-900' : 'text-gray-700'}`}>
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={`p-3 rounded-xl transition-all duration-300 ${
+                          roleChoice === 'consumer'
+                            ? 'bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 shadow-lg'
+                            : 'bg-gray-100'
+                        }`}>
+                          <svg className={`w-6 h-6 ${roleChoice === 'consumer' ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                          </svg>
+                        </div>
+                        <span className={`text-sm font-semibold transition-colors ${roleChoice === 'consumer' ? 'text-violet-900' : 'text-gray-700'}`}>
                           Rent GPUs
                         </span>
                       </div>
                     </button>
                     <button
                       onClick={() => setRoleChoice('provider')}
-                      className={`p-4 rounded-xl border-2 transition-all ${
+                      className={`p-5 rounded-2xl border-2 transition-all duration-300 transform ${
                         roleChoice === 'provider'
-                          ? 'border-indigo-600 bg-indigo-50 shadow-sm'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                          ? 'border-violet-500 bg-gradient-to-br from-violet-50 to-fuchsia-50 shadow-lg scale-105'
+                          : 'border-gray-200 bg-white hover:border-violet-200 hover:shadow-md hover:scale-102'
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-2">
-                        <svg className={`w-6 h-6 ${roleChoice === 'provider' ? 'text-indigo-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                        </svg>
-                        <span className={`text-sm font-medium ${roleChoice === 'provider' ? 'text-indigo-900' : 'text-gray-700'}`}>
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={`p-3 rounded-xl transition-all duration-300 ${
+                          roleChoice === 'provider'
+                            ? 'bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 shadow-lg'
+                            : 'bg-gray-100'
+                        }`}>
+                          <svg className={`w-6 h-6 ${roleChoice === 'provider' ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                          </svg>
+                        </div>
+                        <span className={`text-sm font-semibold transition-colors ${roleChoice === 'provider' ? 'text-violet-900' : 'text-gray-700'}`}>
                           Provide GPUs
                         </span>
                       </div>
@@ -236,7 +263,7 @@ export default function AuthGate() {
 
                 {/* Display Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Display Name
                   </label>
                   <input
@@ -250,8 +277,8 @@ export default function AuthGate() {
                 {/* Company Name (Provider only) */}
                 {roleChoice === 'provider' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Company Name <span className="text-gray-400 font-normal">(optional)</span>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Company Name <span className="text-gray-500 font-normal">(optional)</span>
                     </label>
                     <input
                       className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all bg-white"
@@ -266,7 +293,7 @@ export default function AuthGate() {
                 <button
                   disabled={busy}
                   onClick={doSignup}
-                  className="w-full mt-2 rounded-xl px-4 py-3.5 text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                  className="w-full mt-2 rounded-xl px-4 py-4 text-sm font-semibold bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {busy ? (
                     <span className="flex items-center justify-center gap-2">

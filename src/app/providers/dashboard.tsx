@@ -77,7 +77,7 @@ export default function ProviderDashboard() {
   }
 
   if (!user) {
-    return <div className="p-6 text-sm text-gray-500">Loading user…</div>;
+    return <div className="p-6 text-sm text-gray-900">Loading user…</div>;
   }
 
   if (user.role !== 'provider') {
@@ -117,15 +117,15 @@ export default function ProviderDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-fuchsia-50 to-pink-50 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-sm border-r border-gray-200">
+      <div className="w-64 bg-white/80 backdrop-blur-xl shadow-xl border-r border-gray-200/50 animate-slide-in-right">
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">G</span>
+          <div className="flex items-center gap-3 mb-8 group cursor-pointer">
+            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+              <span className="text-white font-bold text-[10px]">OG</span>
             </div>
-            <span className="font-semibold text-gray-900">OPENGPU</span>
+            <span className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600">OPENGPU</span>
           </div>
           
           <nav className="space-y-1">
@@ -133,8 +133,10 @@ export default function ProviderDashboard() {
             
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'dashboard' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'dashboard'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,8 +147,10 @@ export default function ProviderDashboard() {
             
             <button
               onClick={() => setActiveTab('jobs')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'jobs' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'jobs'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,8 +161,10 @@ export default function ProviderDashboard() {
             
             <button
               onClick={() => setActiveTab('earnings')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'earnings' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'earnings'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,8 +175,10 @@ export default function ProviderDashboard() {
             
             <button
               onClick={() => setActiveTab('reviews')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'reviews' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'reviews'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,8 +189,10 @@ export default function ProviderDashboard() {
             
             <button
               onClick={() => setActiveTab('knowledge')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'knowledge' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'knowledge'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,8 +205,10 @@ export default function ProviderDashboard() {
             
             <button
               onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'settings' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'settings'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,7 +223,7 @@ export default function ProviderDashboard() {
                 clear();
                 router.push('/');
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all duration-300 transform hover:scale-102"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -225,9 +237,9 @@ export default function ProviderDashboard() {
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900">Provider Profile</h1>
+        <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 px-6 py-5 shadow-sm">
+          <div className="flex items-center justify-between animate-fade-in">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700">Provider Profile</h1>
             <div className="flex items-center gap-4">
               <button className="p-2 hover:bg-gray-100 rounded-lg">
                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +255,7 @@ export default function ProviderDashboard() {
           {activeTab === 'dashboard' && (
             <>
               {/* Profile Card */}
-              <div className="bg-white rounded-2xl p-6 mb-6 border border-gray-200">
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.01] animate-scale-in">
                 <div className="flex items-start gap-6">
                   <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
                     <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -285,15 +297,15 @@ export default function ProviderDashboard() {
               </div>
 
               {/* My Nodes Section */}
-              <div className="bg-white rounded-2xl p-6 mb-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">My Nodes</h3>
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 animate-scale-in animation-delay-300">
+                <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-6">My Nodes</h3>
                 {nodesError && <div className="text-sm text-red-600 mb-4">{nodesError}</div>}
                 {nodes.length === 0 ? (
-                  <div className="text-sm text-gray-500">No nodes registered yet.</div>
+                  <div className="text-sm text-gray-900">No nodes registered yet.</div>
                 ) : (
                   <div className="space-y-4">
                     {nodes.map((node) => (
-                      <div key={node.id} className="border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+                      <div key={node.id} className="border border-gray-200 rounded-2xl p-6 hover:border-violet-300 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] bg-gradient-to-br from-white to-gray-50">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
@@ -353,10 +365,10 @@ export default function ProviderDashboard() {
                           </div>
                           
                           <div className="ml-4">
-                            <button 
+                            <button
                               onClick={() => setPricingModal({ show: true, node })}
                               disabled={!node.specs || node.gpu_count === 0}
-                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg text-sm font-medium transition-colors"
+                              className="px-5 py-2.5 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
                             >
                               Update Pricing
                             </button>
@@ -369,20 +381,20 @@ export default function ProviderDashboard() {
               </div>
 
               {/* History Section */}
-              <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">History</h3>
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 animate-scale-in animation-delay-600">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700">History</h3>
                   <button
                     onClick={() => setActiveTab('jobs')}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-all duration-300 hover:scale-110"
                   >
-                    See All
+                    See All →
                   </button>
                 </div>
                 
                 <div className="space-y-3">
                   {jobs.slice(0, 3).map((job, index) => (
-                    <div key={job.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                    <div key={job.id} className="flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-violet-50 hover:to-fuchsia-50 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md">
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                         <span className="text-xs font-medium text-gray-600">{String.fromCharCode(65 + index)}</span>
                       </div>
@@ -392,7 +404,7 @@ export default function ProviderDashboard() {
                       </div>
                       <button
                         onClick={() => setJobDetailsModal({ show: true, job })}
-                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-medium transition-colors"
+                        className="px-4 py-2 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 text-white text-xs rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-110 active:scale-95"
                       >
                         View
                       </button>
@@ -404,15 +416,15 @@ export default function ProviderDashboard() {
           )}
 
           {activeTab === 'jobs' && (
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Job Management</h2>
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl animate-scale-in">
+              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-8">Job Management</h2>
               {jobsError && <div className="text-sm text-red-600 mb-4">{jobsError}</div>}
               {jobs.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">No jobs yet.</div>
+                <div className="text-center py-8 text-gray-900">No jobs yet.</div>
               ) : (
                 <div className="space-y-4">
                   {jobs.map((job) => (
-                    <div key={job.id} className="border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+                    <div key={job.id} className="border border-gray-200 rounded-2xl p-6 hover:border-violet-300 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01] bg-gradient-to-br from-white to-gray-50">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900 mb-1">{job.title}</h4>
@@ -437,7 +449,7 @@ export default function ProviderDashboard() {
                           </span>
                           <button
                             onClick={() => setJobDetailsModal({ show: true, job })}
-                            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-medium transition-colors"
+                            className="px-5 py-2.5 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 text-white text-sm rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110 active:scale-95"
                           >
                             View Details
                           </button>
@@ -451,23 +463,23 @@ export default function ProviderDashboard() {
           )}
 
           {activeTab === 'earnings' && (
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Earnings Overview</h2>
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl animate-scale-in">
+              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-8">Earnings Overview</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-green-800 mb-2">Total Potential</h3>
-                  <div className="text-3xl font-bold text-green-900">${totalEarnings.toFixed(2)}/hr</div>
-                  <div className="text-sm text-green-600 mt-1">From {nodes.length} nodes</div>
+                <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in">
+                  <h3 className="text-lg font-semibold text-white/90 mb-2">Total Potential</h3>
+                  <div className="text-4xl font-bold text-white">${totalEarnings.toFixed(2)}/hr</div>
+                  <div className="text-sm text-white/80 mt-2">From {nodes.length} nodes</div>
                 </div>
-                <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-2">This Month</h3>
-                  <div className="text-3xl font-bold text-blue-900">$1,247.50</div>
-                  <div className="text-sm text-blue-600 mt-1">+12% from last month</div>
+                <div className="bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in animation-delay-300">
+                  <h3 className="text-lg font-semibold text-white/90 mb-2">This Month</h3>
+                  <div className="text-4xl font-bold text-white">$1,247.50</div>
+                  <div className="text-sm text-white/80 mt-2">+12% from last month</div>
                 </div>
-                <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-2">Total Earned</h3>
-                  <div className="text-3xl font-bold text-purple-900">$8,932.15</div>
-                  <div className="text-sm text-purple-600 mt-1">Since inception</div>
+                <div className="bg-gradient-to-br from-fuchsia-500 via-pink-500 to-rose-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in animation-delay-600">
+                  <h3 className="text-lg font-semibold text-white/90 mb-2">Total Earned</h3>
+                  <div className="text-4xl font-bold text-white">$8,932.15</div>
+                  <div className="text-sm text-white/80 mt-2">Since inception</div>
                 </div>
               </div>
             </div>
@@ -476,14 +488,14 @@ export default function ProviderDashboard() {
           {activeTab === 'reviews' && (
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Reviews & Ratings</h2>
-              <div className="text-center py-8 text-gray-500">Reviews functionality coming soon...</div>
+              <div className="text-center py-8 text-gray-900">Reviews functionality coming soon...</div>
             </div>
           )}
 
           {activeTab === 'knowledge' && (
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Knowledge Base</h2>
-              <div className="text-center py-8 text-gray-500">Knowledge base coming soon...</div>
+              <div className="text-center py-8 text-gray-900">Knowledge base coming soon...</div>
             </div>
           )}
 
@@ -546,7 +558,7 @@ export default function ProviderDashboard() {
                                   )}
                                 </div>
                               ) : (
-                                <div className="text-sm text-gray-500">No payout account configured</div>
+                                <div className="text-sm text-gray-900">No payout account configured</div>
                               )}
                             </div>
                             <div className="flex gap-2 ml-4">
@@ -571,7 +583,7 @@ export default function ProviderDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-500">Loading profile...</div>
+                    <div className="text-sm text-gray-900">Loading profile...</div>
                   )}
                 </div>
 
@@ -643,13 +655,13 @@ function JobDetailsModal({ job, onClose }: {
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-900">Job Details</h3>
+    <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 animate-fade-in">
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl animate-scale-in border border-gray-200">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700">Job Details</h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-300 transform hover:scale-110 active:scale-95"
           >
             <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -712,7 +724,7 @@ function JobDetailsModal({ job, onClose }: {
           )}
 
           {/* Additional Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-violet-50 to-fuchsia-50 border border-violet-200 rounded-2xl p-5 shadow-sm">
             <div className="flex items-start gap-2">
               <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -725,10 +737,10 @@ function JobDetailsModal({ job, onClose }: {
           </div>
         </div>
 
-        <div className="flex justify-end mt-6">
+        <div className="flex justify-end mt-8 gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 font-semibold"
           >
             Close
           </button>
@@ -821,7 +833,7 @@ function PricingModal({ node, onClose, accessToken, onSuccess }: {
   return (
     <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">Update Pricing - {node.name || 'Unnamed Node'}</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Update Pricing - {node.name || 'Unnamed Node'}</h3>
         
         {error && (
           <div className="text-sm text-red-600 mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
@@ -833,19 +845,19 @@ function PricingModal({ node, onClose, accessToken, onSuccess }: {
           <div className="space-y-4">
             {node.specs.gpus.map((gpu: any, index: number) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4">
-                <div className="font-medium mb-2">GPU {index + 1}</div>
-                <div className="text-sm text-gray-600 mb-2">
+                <div className="font-semibold text-gray-900 mb-2">GPU {index + 1}</div>
+                <div className="text-sm text-gray-900 mb-2">
                   Model: {gpu.model || 'Unknown'} | Memory: {gpu.memory_gb || 'Unknown'}GB
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium">Hourly Price ($):</label>
+                  <label className="text-sm font-semibold text-gray-900">Hourly Price ($):</label>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
                     value={prices[index] || '0.00'}
                     onChange={(e) => handlePriceChange(index, e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     disabled={loading}
                   />
                 </div>

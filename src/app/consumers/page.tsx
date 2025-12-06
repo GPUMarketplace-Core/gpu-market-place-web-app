@@ -187,7 +187,7 @@ export default function ConsumerDashboard() {
   }
 
   if (!user) {
-    return <div className="p-6 text-sm text-gray-500">Loading user…</div>;
+    return <div className="p-6 text-sm text-gray-900">Loading user…</div>;
   }
 
   if (user.role !== 'consumer') {
@@ -195,15 +195,15 @@ export default function ConsumerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-fuchsia-50 to-pink-50 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-sm border-r border-gray-200">
+      <div className="w-64 bg-white/80 backdrop-blur-xl shadow-xl border-r border-gray-200/50 animate-slide-in-right">
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">G</span>
+          <div className="flex items-center gap-3 mb-8 group cursor-pointer">
+            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+              <span className="text-white font-bold text-[10px]">OG</span>
             </div>
-            <span className="font-semibold text-gray-900">OPENGPU</span>
+            <span className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600">OPENGPU</span>
           </div>
           
           <nav className="space-y-1">
@@ -211,8 +211,10 @@ export default function ConsumerDashboard() {
             
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'dashboard' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'dashboard'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,8 +225,10 @@ export default function ConsumerDashboard() {
             
             <button
               onClick={() => setActiveTab('marketplace')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'marketplace' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'marketplace'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,8 +239,10 @@ export default function ConsumerDashboard() {
             
             <button
               onClick={() => setActiveTab('jobs')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'jobs' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'jobs'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,8 +255,10 @@ export default function ConsumerDashboard() {
             
             <button
               onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'settings' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
+                activeTab === 'settings'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
+                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -265,7 +273,7 @@ export default function ConsumerDashboard() {
                 clear();
                 router.push('/');
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all duration-300 transform hover:scale-102"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -279,9 +287,11 @@ export default function ConsumerDashboard() {
       {/* Main Content */}
       <div className="flex-1 overflow-auto relative">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Consumer Dashboard</h1>
-          <p className="text-sm text-gray-600 mt-1">Browse providers and manage your GPU compute jobs</p>
+        <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 px-6 py-5 shadow-sm">
+          <div className="animate-fade-in">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700">Consumer Dashboard</h1>
+            <p className="text-sm text-gray-600 mt-2">Browse providers and manage your GPU compute jobs</p>
+          </div>
         </div>
 
         {/* Content Area */}
@@ -289,7 +299,7 @@ export default function ConsumerDashboard() {
           {activeTab === 'dashboard' && (
             <>
               {/* Profile Card */}
-              <div className="bg-white rounded-2xl p-6 mb-6 border border-gray-200">
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.01] animate-scale-in">
                 <div className="flex items-start gap-6">
                   <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center">
                     <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,7 +362,7 @@ export default function ConsumerDashboard() {
                 </div>
                 
                 {jobs.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-900">
                     <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
@@ -410,7 +420,7 @@ export default function ConsumerDashboard() {
           {activeTab === 'marketplace' && (
             <div>
               {loading && (
-                <div className="text-center py-8 text-gray-500">Loading providers...</div>
+                <div className="text-center py-8 text-gray-900">Loading providers...</div>
               )}
 
               {error && (
@@ -418,7 +428,7 @@ export default function ConsumerDashboard() {
               )}
 
               {!loading && !error && providers.length === 0 && (
-                <div className="text-center py-8 text-gray-500">No online providers found.</div>
+                <div className="text-center py-8 text-gray-900">No online providers found.</div>
               )}
 
               {!loading && !error && providers.length > 0 && (
@@ -497,10 +507,10 @@ export default function ConsumerDashboard() {
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">My Jobs</h2>
               {jobsError && <div className="text-sm text-red-600 mb-4">{jobsError}</div>}
-              {jobsLoading && <div className="text-sm text-gray-500 mb-4">Loading jobs...</div>}
-              
+              {jobsLoading && <div className="text-sm text-gray-900 mb-4">Loading jobs...</div>}
+
               {!jobsLoading && jobs.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">No jobs submitted yet.</div>
+                <div className="text-center py-8 text-gray-900">No jobs submitted yet.</div>
               ) : (
                 <div className="space-y-4">
                   {jobs.map((job) => (

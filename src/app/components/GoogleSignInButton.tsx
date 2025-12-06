@@ -49,7 +49,7 @@ export default function GoogleSignInButton({ onToken }: Props) {
   return (
     <button
       onClick={requestAccessToken}
-      className="w-full h-12 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm flex items-center justify-center gap-3 shadow-sm"
+      className="w-full h-12 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm flex items-center justify-center gap-3 shadow-sm cursor-pointer transition-all duration-200"
       disabled={loading}
     >
       <span className="inline-flex items-center justify-center h-5 w-5">
@@ -60,7 +60,7 @@ export default function GoogleSignInButton({ onToken }: Props) {
           <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.083,5.566 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.657,44,35,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
         </svg>
       </span>
-      <span>{loading ? 'Signing in…' : 'Continue with Google'}</span>
+      <span className="font-medium text-gray-900">{loading ? 'Signing in…' : 'Continue with Google'}</span>
     </button>
   );
 }

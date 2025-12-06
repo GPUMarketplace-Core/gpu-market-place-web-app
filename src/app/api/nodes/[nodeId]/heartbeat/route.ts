@@ -1,24 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyGoogleToken } from '@/lib/auth/oauth';
-import { UserModel } from '@/lib/models/User';
+import { authenticateRequest } from '@/lib/auth/utils';
 import { NodeModel } from '@/lib/models/Node';
-import { cacheProviderData, type CachedProviderData } from '@/lib/db/redis';
+// import { cacheProviderData, type CachedProviderData } from '@/lib/db/redis';
 import { connectToMongoDB } from '@/lib/db/mongodb';
-
-async function getUserFromAuthHeader(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { error: 'Missing or invalid Authorization header. Expected: Bearer <oauth_token>' };
-  }
-
-  const token = authHeader.substring(7);
-  const userInfo = await verifyGoogleToken(token);
-  if (!userInfo?.email) return { error: 'Invalid or expired OAuth token' };
-
-  const user = await UserModel.findByEmail(userInfo.email);
-  if (!user) return { error: 'User not found. Please signup first.' };
-  return { user };
-}
 
 export async function POST(
   request: NextRequest,
@@ -26,7 +10,7 @@ export async function POST(
 ) {
   try {
     // Verify authentication
-    const auth = await getUserFromAuthHeader(request);
+    const auth = await authenticateRequest(request);
     if ('error' in auth) {
       return NextResponse.json({ error: auth.error }, { status: 401 });
     }
@@ -42,39 +26,109 @@ export async function POST(
 
     const { nodeId } = await params;
 
-    // Verify node ownership
-    const isOwner = await NodeModel.isNodeOwnedBy(nodeId, user.id);
-    if (!isOwner) {
-      return NextResponse.json(
-        { error: 'Node not found or you do not own this node' },
-        { status: 404 }
-      );
-    }
-
     // Parse request body (optional status update)
     const body = await request.json().catch(() => ({}));
     const { status, metrics } = body;
+    
+    console.log(`[DEBUG] Received Heartbeat from ${nodeId}:`, JSON.stringify(body, null, 2));
 
-    // Validate status if provided
-    if (status && !['online', 'offline', 'draining'].includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid status. Must be one of: online, offline, draining' },
-        { status: 400 }
-      );
+    // Check if node exists
+    const existingNode = await NodeModel.getById(nodeId);
+    let updatedNode;
+
+    if (!existingNode) {
+        // Node doesn't exist - create it
+        console.log(`[Auto-Registration] Creating new node ${nodeId} for user ${user.id}`);
+        updatedNode = await NodeModel.createWithId(nodeId, user.id);
+    } else {
+        // Node exists - verify ownership
+        if (existingNode.owner_user_id !== user.id) {
+            return NextResponse.json(
+                { error: 'Node exists but you do not own it' },
+                { status: 403 }
+            );
+        }
+
+        // Validate status if provided
+        if (status && !['online', 'offline', 'draining'].includes(status)) {
+            return NextResponse.json(
+                { error: 'Invalid status. Must be one of: online, offline, draining' },
+                { status: 400 }
+            );
+        }
+
+        // Update heartbeat in database
+        const heartbeatUpdate: any = {
+            status: status || 'online',
+        };
+        
+        const extraFields: any = {};
+        if (metrics && metrics.os) {
+            extraFields.os = metrics.os.name;
+            extraFields.name = metrics.os.hostname; // Use hostname as node name
+        }
+
+        updatedNode = await NodeModel.updateHeartbeat(nodeId, heartbeatUpdate, extraFields);
     }
-
-    // Update heartbeat in database
-    const updatedNode = await NodeModel.updateHeartbeat(nodeId, {
-      status: status || 'online', // Default to online if not specified
-    });
 
     if (!updatedNode) {
       return NextResponse.json(
-        { error: 'Failed to update node heartbeat' },
+        { error: 'Failed to update or create node' },
         { status: 500 }
       );
     }
 
+    // Save metrics to MongoDB
+    if (metrics) {
+        try {
+            const { db } = await connectToMongoDB();
+            const nodeSpecsCollection = db.collection('node_specs');
+            
+            // Structure data for MongoDB
+            const updateData: any = {
+                node_id: nodeId,
+                updated_at: new Date(),
+            };
+
+            if (metrics.cpu) updateData.cpu = metrics.cpu;
+            if (metrics.memory) updateData.memory_gb = Math.round(metrics.memory.total_bytes / (1024 * 1024 * 1024));
+            if (metrics.os) {
+                updateData.os = metrics.os.name; // Save OS name (e.g., Windows 11)
+                updateData.os_details = metrics.os; // Save full details
+            }
+            
+            if (metrics.gpus && Array.isArray(metrics.gpus)) {
+                updateData.gpus = metrics.gpus.map((gpu: any, index: number) => {
+                    let price = 0;
+                    // Find rate for this GPU index
+                    if (metrics.gpu_rates && Array.isArray(metrics.gpu_rates)) {
+                        const rate = metrics.gpu_rates.find((r: any) => r.gpu_index === index);
+                        if (rate) {
+                            price = rate.hourly_price_cents;
+                        }
+                    }
+
+                    return {
+                        vendor: "NVIDIA", // TODO: Get vendor from agent
+                        model: gpu.name,
+                        vram_gb: Math.round(gpu.vram_total_bytes / (1024 * 1024 * 1024)),
+                        count: 1, 
+                        hourly_price_cents: price
+                    };
+                });
+            }
+            
+            // Upsert specs
+            await nodeSpecsCollection.updateOne(
+                { node_id: nodeId },
+                { $set: updateData },
+                { upsert: true }
+            );
+        } catch (error) {
+            console.warn('Failed to save metrics to MongoDB:', error);
+        }
+    }
+    
     // Fetch GPU specs from MongoDB for caching
     let gpuSpecs = null;
     try {
@@ -93,6 +147,7 @@ export async function POST(
       console.warn('Failed to fetch GPU specs for caching:', error);
     }
 
+    /*
     // Cache provider data in Redis
     const cacheData: CachedProviderData = {
       nodeId: updatedNode.id,
@@ -102,7 +157,13 @@ export async function POST(
       status: updatedNode.status,
     };
 
-    await cacheProviderData(nodeId, cacheData);
+    try {
+      await cacheProviderData(nodeId, cacheData);
+    } catch (error) {
+      console.warn('Failed to cache provider data in Redis:', error);
+      // Continue even if caching fails
+    }
+    */
 
     return NextResponse.json(
       {
@@ -113,7 +174,7 @@ export async function POST(
           status: updatedNode.status,
           last_heartbeat_at: updatedNode.last_heartbeat_at,
         },
-        cached: true,
+        cached: false,
       },
       { status: 200 }
     );

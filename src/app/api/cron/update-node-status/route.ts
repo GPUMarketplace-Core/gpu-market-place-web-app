@@ -17,15 +17,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Mark nodes as offline if they haven't sent a heartbeat in the last 5 minutes
-    const staleMinutes = parseInt(process.env.NODE_STALE_MINUTES || '5', 10);
-    const updatedCount = await NodeModel.markStaleNodesOffline(staleMinutes);
+    // Mark nodes as offline if they haven't sent a heartbeat in the last 10 seconds
+    // Using a very short interval for testing responsiveness
+    const staleSeconds = 10;
+    const updatedCount = await NodeModel.markStaleNodesOffline(staleSeconds);
 
     return NextResponse.json({
       success: true,
       message: `Marked ${updatedCount} stale node(s) as offline`,
       updated_count: updatedCount,
-      stale_minutes: staleMinutes,
+      stale_seconds: staleSeconds,
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {

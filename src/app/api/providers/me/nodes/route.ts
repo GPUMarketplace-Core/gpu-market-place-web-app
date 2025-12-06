@@ -1,42 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyGoogleToken, verifyGitHubToken } from '@/lib/auth/oauth';
-import { UserModel } from '@/lib/models/User';
+import { authenticateRequest } from '@/lib/auth/utils';
 import pool from '@/lib/db/postgres';
 import { connectToMongoDB } from '@/lib/db/mongodb';
-
-async function getUser(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { error: 'Missing or invalid Authorization header. Expected: Bearer <oauth_token>' };
-  }
-  const token = authHeader.substring(7);
-  
-  // Try Google first, then GitHub
-  let info = await verifyGoogleToken(token);
-  if (!info) {
-    const githubInfo = await verifyGitHubToken(token);
-    if (githubInfo) {
-      info = {
-        email: githubInfo.email,
-        name: githubInfo.name,
-        picture: githubInfo.avatar_url,
-        sub: githubInfo.id.toString(),
-      };
-    }
-  }
-  
-  if (!info?.email) return { error: 'Invalid or expired OAuth token' };
-  const user = await UserModel.findByEmail(info.email);
-  if (!user) return { error: 'User not found. Please signup first.' };
-  return { user };
-}
+import { NodeModel } from '@/lib/models/Node';
 
 /**
  * GET /api/providers/me/nodes - Get nodes owned by the current provider
  */
 export async function GET(request: NextRequest) {
   try {
-    const auth = await getUser(request);
+    const auth = await authenticateRequest(request);
     if ('error' in auth) {
       return NextResponse.json({ error: auth.error }, { status: 401 });
     }
@@ -45,6 +18,10 @@ export async function GET(request: NextRequest) {
     if (user.role !== 'provider') {
       return NextResponse.json({ error: 'Only providers can view their nodes' }, { status: 403 });
     }
+
+    // Lazy Cron: Mark stale nodes offline before fetching
+    // This ensures the dashboard always shows current status without external cron
+    await NodeModel.markStaleNodesOffline(10); // 10 seconds timeout
 
     // Fetch nodes from PostgreSQL
     const result = await pool.query(

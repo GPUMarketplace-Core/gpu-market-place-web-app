@@ -39,7 +39,8 @@ export class NodeModel {
   // Update heartbeat timestamp and optionally status
   static async updateHeartbeat(
     nodeId: string,
-    input: UpdateHeartbeatInput = {}
+    input: UpdateHeartbeatInput = {},
+    extra?: { os?: string; name?: string } // Optional extra fields
   ): Promise<Node | null> {
     const client = await pool.connect();
     try {
@@ -53,6 +54,16 @@ export class NodeModel {
       if (input.status) {
         updates.push(`status = $${paramIndex++}`);
         values.push(input.status);
+      }
+      
+      if (extra?.os) {
+        updates.push(`os = $${paramIndex++}`);
+        values.push(extra.os);
+      }
+      
+      if (extra?.name) {
+        updates.push(`name = $${paramIndex++}`);
+        values.push(extra.name);
       }
 
       // Add nodeId as the last parameter
@@ -94,15 +105,15 @@ export class NodeModel {
     return result.rows;
   }
 
-  // Mark nodes as offline if they haven't sent a heartbeat in the specified minutes
-  static async markStaleNodesOffline(staleMinutes: number = 5): Promise<number> {
+  // Mark nodes as offline if they haven't sent a heartbeat in the specified seconds
+  static async markStaleNodesOffline(staleSeconds: number = 300): Promise<number> {
     const result = await pool.query(
       `UPDATE nodes
        SET status = 'offline'
        WHERE status != 'offline'
        AND (
          last_heartbeat_at IS NULL
-         OR last_heartbeat_at < NOW() - INTERVAL '${staleMinutes} minutes'
+         OR last_heartbeat_at < NOW() - INTERVAL '${staleSeconds} seconds'
        )
        RETURNING id`,
     );
@@ -133,6 +144,17 @@ export class NodeModel {
       [nodeId, userId]
     );
     return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Create a new node with a specific ID (auto-registration)
+  static async createWithId(nodeId: string, userId: string, name?: string): Promise<Node> {
+    const result = await pool.query(
+      `INSERT INTO nodes (id, owner_user_id, name, status, last_heartbeat_at)
+       VALUES ($1, $2, $3, 'online', NOW())
+       RETURNING *`,
+      [nodeId, userId, name || `Node ${nodeId.substring(0, 8)}`]
+    );
+    return result.rows[0];
   }
 
   // Get node count by status for a provider

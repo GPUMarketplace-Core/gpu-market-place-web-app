@@ -38,9 +38,9 @@ interface Job {
   submitted_at: string;
   started_at?: string;
   finished_at?: string;
-  cost_cents?: number;
-  provider_name?: string;
-  payment_status?: 'pending' | 'authorized' | 'captured' | 'refunded' | 'failed';
+  provider_id?: string;
+  artifacts_ref?: string;
+  failure_reason?: string;
 }
 
 export default function ConsumerDashboard() {
@@ -51,7 +51,17 @@ export default function ConsumerDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError] = useState<string | null>(null);
+
+  // Job Submission State
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobFile, setJobFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (accessToken && !user) {
@@ -89,48 +99,82 @@ export default function ConsumerDashboard() {
     fetchProviders();
   }, []);
 
-  // Mock jobs data for demonstration
-  useEffect(() => {
-    // This would normally fetch from an API
-    const mockJobs = [
-      {
-        id: '1',
-        title: 'AI Model Training - ResNet50',
-        status: 'succeeded',
-        submitted_at: '2024-01-15T10:30:00Z',
-        finished_at: '2024-01-15T14:45:00Z',
-        cost_cents: 2450,
-        provider_name: 'GPU Farm Alpha',
-        payment_status: 'captured'
-      },
-      {
-        id: '2', 
-        title: 'Image Processing Pipeline',
-        status: 'running',
-        submitted_at: '2024-01-16T09:15:00Z',
-        started_at: '2024-01-16T09:20:00Z',
-        cost_cents: 1200,
-        provider_name: 'Cloud GPU Beta',
-        payment_status: 'pending'
-      },
-      {
-        id: '3',
-        title: 'Data Analysis Job',
-        status: 'succeeded',
-        submitted_at: '2024-01-16T11:00:00Z',
-        cost_cents: 150,
-        provider_name: 'GPU Farm Alpha',
-        payment_status: 'pending'
+  const fetchJobs = async () => {
+    if (!accessToken) return;
+    setJobsLoading(true);
+    try {
+      const res = await fetch('/api/jobs', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setJobs(data.jobs || []);
+      } else {
+        setJobsError('Failed to fetch jobs');
       }
-    ];
-    setJobs(mockJobs);
-  }, []);
+    } catch (err) {
+      setJobsError('Failed to fetch jobs');
+    } finally {
+      setJobsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'jobs' || activeTab === 'dashboard') {
+      fetchJobs();
+    }
+  }, [activeTab, accessToken]);
+
+  const handleOpenJobModal = (provider: Provider, nodeId: string) => {
+    setSelectedProvider(provider);
+    setSelectedNodeId(nodeId);
+    setJobTitle('');
+    setJobFile(null);
+    setSubmitError(null);
+    setShowJobModal(true);
+  };
+
+  const handleSubmitJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProvider || !selectedNodeId || !jobTitle || !jobFile || !accessToken) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('title', jobTitle);
+      formData.append('provider_id', selectedProvider.provider_id);
+      formData.append('node_id', selectedNodeId);
+      formData.append('file', jobFile);
+
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: formData,
+      });
+
+      if (res.ok) {
+        setShowJobModal(false);
+        setActiveTab('jobs');
+        fetchJobs();
+      } else {
+        const data = await res.json();
+        setSubmitError(data.error || 'Failed to submit job');
+      }
+    } catch (err: any) {
+      setSubmitError(err.message || 'Failed to submit job');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const totalProviders = providers.length;
   const totalOnlineNodes = providers.reduce((sum, p) => sum + p.online_nodes_count, 0);
   const runningJobs = jobs.filter(j => j.status === 'running').length;
   const completedJobs = jobs.filter(j => j.status === 'succeeded').length;
-  const totalSpent = jobs.reduce((sum, j) => sum + (j.cost_cents || 0), 0) / 100;
 
   if (!accessToken) {
     return <div className="p-6 text-sm">Please sign in.</div>;
@@ -227,7 +271,7 @@ export default function ConsumerDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto relative">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <h1 className="text-2xl font-semibold text-gray-900">Consumer Dashboard</h1>
@@ -253,14 +297,16 @@ export default function ConsumerDashboard() {
                     </h2>
                     <div className="text-sm text-gray-600 mb-4">
                       Active Jobs: <span className="text-blue-600 font-medium">{runningJobs}</span> | 
-                      Completed: <span className="text-green-600 font-medium ml-1">{completedJobs}</span> |
-                      Total Spent: <span className="text-purple-600 font-medium ml-1">${totalSpent.toFixed(2)}</span>
+                      Completed: <span className="text-green-600 font-medium ml-1">{completedJobs}</span>
                     </div>
-                    <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
+                    <button 
+                      onClick={() => setActiveTab('marketplace')}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
-                      Submit New Job
+                      Find a Provider
                     </button>
                   </div>
                   
@@ -284,37 +330,6 @@ export default function ConsumerDashboard() {
                   <h3 className="text-lg font-semibold text-purple-800 mb-2">Total Jobs</h3>
                   <div className="text-3xl font-bold text-purple-900">{jobs.length}</div>
                   <div className="text-sm text-purple-600 mt-1">{runningJobs} currently running</div>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="bg-white rounded-2xl p-6 mb-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button 
-                    onClick={() => setActiveTab('marketplace')}
-                    className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-                  >
-                    <svg className="w-8 h-8 text-blue-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <span className="text-sm font-medium">Browse Providers</span>
-                  </button>
-                  <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors">
-                    <svg className="w-8 h-8 text-green-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span className="text-sm font-medium">Submit Job</span>
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('jobs')}
-                    className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
-                  >
-                    <svg className="w-8 h-8 text-purple-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <span className="text-sm font-medium">View Jobs</span>
-                  </button>
                 </div>
               </div>
 
@@ -351,8 +366,7 @@ export default function ConsumerDashboard() {
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900">{job.title}</h4>
                           <div className="text-sm text-gray-600">
-                            {new Date(job.submitted_at).toLocaleDateString()} • 
-                            {job.provider_name || 'Provider'}
+                            {new Date(job.submitted_at).toLocaleDateString()}
                           </div>
                         </div>
                         
@@ -365,30 +379,6 @@ export default function ConsumerDashboard() {
                           }`}>
                             {job.status === 'running' ? 'in-progress' : job.status}
                           </span>
-                          
-                          {job.status === 'succeeded' && job.cost_cents !== undefined && (
-                            <div className="text-sm font-semibold text-gray-900">
-                              ${(job.cost_cents / 100).toFixed(2)}
-                            </div>
-                          )}
-                          
-                          {job.status === 'succeeded' && job.payment_status === 'captured' && (
-                            <button className="inline-flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded font-medium transition-colors">
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                              Download
-                            </button>
-                          )}
-                          
-                          {job.status === 'succeeded' && job.payment_status !== 'captured' && (
-                            <button className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-medium transition-colors">
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                              Files Ready
-                            </button>
-                          )}
                         </div>
                       </div>
                     ))}
@@ -450,7 +440,7 @@ export default function ConsumerDashboard() {
                             </div>
                             
                             {node.specs?.gpus && (
-                              <div className="space-y-2">
+                              <div className="space-y-2 mb-3">
                                 {node.specs.gpus.map((gpu, index) => (
                                   <div key={index} className="flex items-center justify-between text-sm">
                                     <div className="flex items-center gap-2">
@@ -465,12 +455,15 @@ export default function ConsumerDashboard() {
                               </div>
                             )}
                             
-                            {node.specs?.cpu && (
-                              <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
-                                CPU: {node.specs.cpu.model} ({node.specs.cpu.cores} cores) | 
-                                RAM: {node.specs.memory_gb}GB
-                              </div>
-                            )}
+                            <button
+                              onClick={() => handleOpenJobModal(provider, node.node_id)}
+                              className="w-full py-2 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              Rent Node & Submit Job
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -485,7 +478,9 @@ export default function ConsumerDashboard() {
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">My Jobs</h2>
               {jobsError && <div className="text-sm text-red-600 mb-4">{jobsError}</div>}
-              {jobs.length === 0 ? (
+              {jobsLoading && <div className="text-sm text-gray-500 mb-4">Loading jobs...</div>}
+              
+              {!jobsLoading && jobs.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">No jobs submitted yet.</div>
               ) : (
                 <div className="space-y-4">
@@ -503,8 +498,8 @@ export default function ConsumerDashboard() {
                               <span className="ml-3">Finished: {new Date(job.finished_at).toLocaleDateString()}</span>
                             )}
                           </div>
-                          {job.provider_name && (
-                            <div className="text-sm text-gray-500">Provider: {job.provider_name}</div>
+                          {job.failure_reason && (
+                            <div className="text-sm text-red-600">Error: {job.failure_reason}</div>
                           )}
                         </div>
                         <div className="flex items-center gap-3 ml-4">
@@ -516,10 +511,18 @@ export default function ConsumerDashboard() {
                           }`}>
                             {job.status === 'running' ? 'in-progress' : job.status}
                           </span>
-                          {job.cost_cents !== undefined && (
-                            <div className="text-sm font-semibold text-gray-900">
-                              ${(job.cost_cents / 100).toFixed(2)}
-                            </div>
+                          
+                          {job.status === 'succeeded' && job.artifacts_ref && (
+                            <a 
+                              href={job.artifacts_ref}
+                              download
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded font-medium transition-colors"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              Download Result
+                            </a>
                           )}
                         </div>
                       </div>
@@ -546,14 +549,73 @@ export default function ConsumerDashboard() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                   <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3 capitalize">{user.role}</div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
-                  <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">{new Date(user.created_at).toLocaleDateString()}</div>
-                </div>
               </div>
             </div>
           )}
         </div>
+
+        {/* Job Submission Modal */}
+        {showJobModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md m-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Submit Job</h3>
+                <button onClick={() => setShowJobModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmitJob} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="e.g. Render Scene 1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Blend File</label>
+                  <input
+                    type="file"
+                    required
+                    onChange={(e) => setJobFile(e.target.files?.[0] || null)}
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    accept=".blend,.zip"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Supported formats: .blend</p>
+                </div>
+
+                {submitError && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{submitError}</div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowJobModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {submitting ? 'Submitting...' : 'Submit Job'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

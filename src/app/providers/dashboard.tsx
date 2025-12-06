@@ -15,6 +15,9 @@ export default function ProviderDashboard() {
   const [nodesError, setNodesError] = useState<string | null>(null);
   const [pricingModal, setPricingModal] = useState<{ show: boolean; node: any }>({ show: false, node: null });
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showPayoutDetails, setShowPayoutDetails] = useState(false);
+  const [payoutDetails, setPayoutDetails] = useState<any>(null);
+  const [payoutLoading, setPayoutLoading] = useState(false);
 
   // Ensure we have the latest user when navigating directly with a token in storage
   useEffect(() => {
@@ -85,6 +88,32 @@ export default function ProviderDashboard() {
   const totalEarnings = nodes.reduce((sum, node) => {
     return sum + (node.specs?.gpus?.reduce((gpuSum: number, gpu: any) => gpuSum + (gpu.hourly_price_cents || 0), 0) || 0);
   }, 0) / 100;
+
+  const handleViewPayoutDetails = async () => {
+    if (!accessToken) return;
+    setPayoutLoading(true);
+    try {
+      const res = await fetch('/api/providers/me/stripe/details', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPayoutDetails(data.details);
+        setShowPayoutDetails(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'Failed to fetch payout details');
+      }
+    } catch (err: any) {
+      alert('Error fetching payout details: ' + err.message);
+    } finally {
+      setPayoutLoading(false);
+    }
+  };
+
+  const handleEditPayoutAccount = () => {
+    router.push('/providers/settings/payout/setup');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -480,9 +509,58 @@ export default function ProviderDashboard() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
                         <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">{provider.rating_avg} ({provider.rating_count} reviews)</div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Payout Account</label>
-                        <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">{provider.payout_account_id || '-'}</div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Payout Account</label>
+                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              {provider.payout_account_id ? (
+                                <div className="space-y-2">
+                                  <div className="text-sm text-gray-900 font-mono">
+                                    {showPayoutDetails ? provider.payout_account_id : '••••••••••••••••'}
+                                  </div>
+                                  {payoutDetails && showPayoutDetails && (
+                                    <div className="text-xs text-gray-600 space-y-1 mt-2 pt-2 border-t border-gray-300">
+                                      <div>Email: {payoutDetails.email || '-'}</div>
+                                      {payoutDetails.externalAccount && (
+                                        <>
+                                          <div>Bank: {payoutDetails.externalAccount.bankName || 'Not set'}</div>
+                                          <div>Account: ••••{payoutDetails.externalAccount.last4}</div>
+                                          <div className="flex items-center gap-2 mt-1">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                              payoutDetails.payoutsEnabled ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                              {payoutDetails.payoutsEnabled ? 'Payouts Enabled' : 'Setup Incomplete'}
+                                            </span>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-sm text-gray-500">No payout account configured</div>
+                              )}
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              {provider.payout_account_id && (
+                                <button
+                                  onClick={handleViewPayoutDetails}
+                                  disabled={payoutLoading}
+                                  className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                                >
+                                  {payoutLoading ? 'Loading...' : showPayoutDetails ? 'Hide' : 'View'}
+                                </button>
+                              )}
+                              <button
+                                onClick={handleEditPayoutAccount}
+                                className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                              >
+                                {provider.payout_account_id ? 'Edit' : 'Setup'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ) : (

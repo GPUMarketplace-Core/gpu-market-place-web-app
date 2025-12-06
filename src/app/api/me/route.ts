@@ -29,7 +29,8 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.substring(7);
-
+    
+    // Try OAuth (Google/GitHub)
     // Try to verify with Google first
     let userInfo = await verifyGoogleToken(token);
     let provider = 'google';

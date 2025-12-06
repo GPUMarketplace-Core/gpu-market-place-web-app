@@ -489,6 +489,31 @@ export default function ProviderDashboard() {
                     <div className="text-sm text-gray-500">Loading profile...</div>
                   )}
                 </div>
+
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Provider Agent Token</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Use this token to authenticate your Provider Agent CLI. 
+                    <span className="text-red-600 font-medium ml-1">Do not share this token with anyone.</span>
+                  </p>
+                  
+                  <div className="relative">
+                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 font-mono text-sm text-gray-600 break-all">
+                      {accessToken}
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (accessToken) {
+                          navigator.clipboard.writeText(accessToken);
+                          alert('Token copied to clipboard!');
+                        }
+                      }}
+                      className="absolute top-2 right-2 px-3 py-1 bg-white border border-gray-300 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+                    >
+                      Copy Token
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

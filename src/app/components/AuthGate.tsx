@@ -7,9 +7,11 @@ import { useAuth } from '../providers/AuthProvider';
 import { me, signup } from '../lib/authClient';
 
 type RoleChoice = 'consumer' | 'provider';
+type AuthMode = 'signup' | 'login';
 
 export default function AuthGate() {
-  const { user, accessToken, setAuthState, clear } = useAuth();
+  const { user, accessToken, setAuthState, clear, refreshUser } = useAuth();
+  const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [roleChoice, setRoleChoice] = useState<RoleChoice>('consumer');
   const [displayName, setDisplayName] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -84,6 +86,24 @@ export default function AuthGate() {
     }
   }, [accessToken, companyName, displayName, roleChoice, setAuthState, router]);
 
+  // Auto-redirect when user is authenticated (on page reload)
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'provider') {
+        router.push('/providers');
+      } else if (user.role === 'consumer') {
+        router.push('/consumers');
+      }
+    }
+  }, [user, router]);
+
+  // Fetch user data on mount if we have a token but no user
+  useEffect(() => {
+    if (accessToken && !user) {
+      refreshUser(accessToken);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="relative flex w-full h-screen bg-white">
       {/* Left: Background image in rounded container with white margins */}
@@ -118,11 +138,41 @@ export default function AuthGate() {
           </div>
 
           {/* Tabs */}
-          <div className="mb-6">
-            <div className="inline-flex items-center rounded-xl border border-indigo-100 bg-indigo-50 p-1">
-              <button className="px-5 py-2 text-sm rounded-lg bg-indigo-500 text-white">Sign Up</button>
-              <button className="px-5 py-2 text-sm rounded-lg text-gray-400" disabled>Log In</button>
+          <div className="mb-8">
+            <div className="inline-flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1">
+              <button
+                onClick={() => setAuthMode('signup')}
+                className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                  authMode === 'signup'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Sign Up
+              </button>
+              <button
+                onClick={() => setAuthMode('login')}
+                className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                  authMode === 'login'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Log In
+              </button>
             </div>
+          </div>
+
+          {/* Instructions */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              {authMode === 'signup' ? 'Create your account' : 'Welcome back'}
+            </h2>
+            <p className="text-sm text-gray-600">
+              {authMode === 'signup'
+                ? 'Sign up with Google to get started'
+                : 'Log in with your Google account'}
+            </p>
           </div>
 
           {/* Google button */}
@@ -131,28 +181,115 @@ export default function AuthGate() {
           </div>
 
           {/* Signup form after token, if needed */}
-          {accessToken && !isAuthed && (
-            <div className="border rounded-xl p-4 flex flex-col gap-3">
-              <div className="text-sm font-medium">Complete signup</div>
-              <div className="flex gap-3 items-center">
-                <label className="text-sm w-24">Role</label>
-                <select className="border rounded px-2 py-2 text-sm flex-1" value={roleChoice} onChange={(e) => setRoleChoice(e.target.value as RoleChoice)}>
-                  <option value="consumer">Consumer</option>
-                  <option value="provider">Provider</option>
-                </select>
+          {accessToken && !isAuthed && authMode === 'signup' && (
+            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-5">
+                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-base font-semibold text-gray-900">Complete Your Profile</div>
               </div>
-              <div className="flex gap-3 items-center">
-                <label className="text-sm w-24">Name</label>
-                <input className="border rounded px-2 py-2 text-sm flex-1" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" />
-              </div>
-              {roleChoice === 'provider' && (
-                <div className="flex gap-3 items-center">
-                  <label className="text-sm w-24">Company</label>
-                  <input className="border rounded px-2 py-2 text-sm flex-1" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Company (optional)" />
+
+              <div className="space-y-4">
+                {/* Role Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    I want to
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setRoleChoice('consumer')}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        roleChoice === 'consumer'
+                          ? 'border-indigo-600 bg-indigo-50 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <svg className={`w-6 h-6 ${roleChoice === 'consumer' ? 'text-indigo-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        <span className={`text-sm font-medium ${roleChoice === 'consumer' ? 'text-indigo-900' : 'text-gray-700'}`}>
+                          Rent GPUs
+                        </span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setRoleChoice('provider')}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        roleChoice === 'provider'
+                          ? 'border-indigo-600 bg-indigo-50 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <svg className={`w-6 h-6 ${roleChoice === 'provider' ? 'text-indigo-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                        <span className={`text-sm font-medium ${roleChoice === 'provider' ? 'text-indigo-900' : 'text-gray-700'}`}>
+                          Provide GPUs
+                        </span>
+                      </div>
+                    </button>
+                  </div>
                 </div>
-              )}
-              <button disabled={busy} onClick={doSignup} className="rounded-lg px-3 py-2 text-sm bg-black text-white disabled:opacity-50">{busy ? 'Submitting…' : 'Create account'}</button>
-              {error && <div className="text-sm text-red-600">{error}</div>}
+
+                {/* Display Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Display Name
+                  </label>
+                  <input
+                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all bg-white"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Enter your name"
+                  />
+                </div>
+
+                {/* Company Name (Provider only) */}
+                {roleChoice === 'provider' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company Name <span className="text-gray-400 font-normal">(optional)</span>
+                    </label>
+                    <input
+                      className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all bg-white"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="Your company name"
+                    />
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <button
+                  disabled={busy}
+                  onClick={doSignup}
+                  className="w-full mt-2 rounded-xl px-4 py-3.5 text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                >
+                  {busy ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Creating account...
+                    </span>
+                  ) : (
+                    'Create Account'
+                  )}
+                </button>
+
+                {error && (
+                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <svg className="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-sm text-red-800">{error}</div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

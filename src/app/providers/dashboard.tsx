@@ -14,6 +14,7 @@ export default function ProviderDashboard() {
   const [nodes, setNodes] = useState<any[]>([]);
   const [nodesError, setNodesError] = useState<string | null>(null);
   const [pricingModal, setPricingModal] = useState<{ show: boolean; node: any }>({ show: false, node: null });
+  const [jobDetailsModal, setJobDetailsModal] = useState<{ show: boolean; job: any }>({ show: false, job: null });
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showPayoutDetails, setShowPayoutDetails] = useState(false);
   const [payoutDetails, setPayoutDetails] = useState<any>(null);
@@ -371,7 +372,10 @@ export default function ProviderDashboard() {
               <div className="bg-white rounded-2xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">History</h3>
-                  <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  <button
+                    onClick={() => setActiveTab('jobs')}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
                     See All
                   </button>
                 </div>
@@ -386,7 +390,10 @@ export default function ProviderDashboard() {
                         <div className="text-sm font-medium text-gray-900">{job.title}</div>
                         <div className="text-xs text-gray-500">{new Date(job.submitted_at).toLocaleDateString()}</div>
                       </div>
-                      <button className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-medium transition-colors">
+                      <button
+                        onClick={() => setJobDetailsModal({ show: true, job })}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-medium transition-colors"
+                      >
                         View
                       </button>
                     </div>
@@ -428,12 +435,12 @@ export default function ProviderDashboard() {
                           }`}>
                             {job.status}
                           </span>
-                          <a 
-                            href={`/billing/${job.id}`} 
-                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs font-medium transition-colors"
+                          <button
+                            onClick={() => setJobDetailsModal({ show: true, job })}
+                            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-medium transition-colors"
                           >
-                            Billing Details
-                          </a>
+                            View Details
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -600,9 +607,9 @@ export default function ProviderDashboard() {
 
       {/* Pricing Update Modal */}
       {pricingModal.show && (
-        <PricingModal 
-          node={pricingModal.node} 
-          onClose={() => setPricingModal({ show: false, node: null })} 
+        <PricingModal
+          node={pricingModal.node}
+          onClose={() => setPricingModal({ show: false, node: null })}
           accessToken={accessToken}
           onSuccess={() => {
             // Refresh nodes after successful update
@@ -618,6 +625,115 @@ export default function ProviderDashboard() {
           }}
         />
       )}
+
+      {/* Job Details Modal */}
+      {jobDetailsModal.show && (
+        <JobDetailsModal
+          job={jobDetailsModal.job}
+          onClose={() => setJobDetailsModal({ show: false, job: null })}
+        />
+      )}
+    </div>
+  );
+}
+
+// Job Details Modal Component
+function JobDetailsModal({ job, onClose }: {
+  job: any;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">Job Details</h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Job Title */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+            <div className="text-base text-gray-900 bg-gray-50 rounded-lg p-3">{job.title}</div>
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              job.status === 'succeeded' ? 'bg-green-100 text-green-800' :
+              job.status === 'failed' ? 'bg-red-100 text-red-800' :
+              job.status === 'running' ? 'bg-blue-100 text-blue-800' :
+              'bg-gray-100 text-gray-800'
+            }`}>
+              {job.status}
+            </span>
+          </div>
+
+          {/* Timestamps */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Submitted At</label>
+              <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">
+                {new Date(job.submitted_at).toLocaleString()}
+              </div>
+            </div>
+            {job.started_at && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Started At</label>
+                <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">
+                  {new Date(job.started_at).toLocaleString()}
+                </div>
+              </div>
+            )}
+            {job.finished_at && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Finished At</label>
+                <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">
+                  {new Date(job.finished_at).toLocaleString()}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Job Details */}
+          {job.description && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">{job.description}</div>
+            </div>
+          )}
+
+          {/* Additional Info */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">Provider Information</p>
+                <p>This view shows job details from the provider perspective. Consumer personal information is not displayed for privacy reasons.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -687,7 +803,7 @@ function PricingModal({ node, onClose, accessToken, onSuccess }: {
 
   if (!node.specs?.gpus) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50">
         <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
           <h3 className="text-lg font-semibold mb-4">Update Pricing</h3>
           <p className="text-sm text-red-600 mb-4">No GPU specifications found for this node. Please add node specs first.</p>
@@ -703,7 +819,7 @@ function PricingModal({ node, onClose, accessToken, onSuccess }: {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">Update Pricing - {node.name || 'Unnamed Node'}</h3>
         

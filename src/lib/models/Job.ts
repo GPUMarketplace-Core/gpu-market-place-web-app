@@ -225,7 +225,17 @@ export class JobModel {
       // Round up to nearest 0.01 hours (36 seconds) for billing
       const billableHours = Math.ceil(durationHours * 100) / 100;
       const subtotalCents = Math.round(hourlyPriceCents * billableHours);
-      const feesCents = Math.floor(subtotalCents * 0.10); // 10% platform fee
+
+      // Platform fee logic:
+      // - If subtotal < $1.50 (150 cents): flat $1.00 (100 cents) fee
+      // - If subtotal >= $1.50: 10% platform fee
+      let feesCents: number;
+      if (subtotalCents < 150) {
+        feesCents = 100; // Flat $1.00 fee for small jobs
+      } else {
+        feesCents = Math.floor(subtotalCents * 0.10); // 10% platform fee
+      }
+
       const totalCents = subtotalCents + feesCents;
 
       // Update order with actual pricing

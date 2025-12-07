@@ -573,8 +573,8 @@ export default function ConsumerDashboard() {
                         <div className="text-right">
                           <div className="flex items-center gap-1 text-sm">
                             <span className="text-yellow-400">★</span>
-                            <span className="font-medium">{provider.rating.average.toFixed(1)}</span>
-                            <span className="text-gray-700">({provider.rating.count})</span>
+                            <span className="font-medium text-gray-900">{provider.rating.average.toFixed(1)}</span>
+                            <span className="text-gray-900">({provider.rating.count})</span>
                           </div>
                           <div className="text-xs text-gray-900 mt-1">
                             {provider.online_nodes_count} nodes online
@@ -598,8 +598,8 @@ export default function ConsumerDashboard() {
                                 {node.specs.gpus.map((gpu, index) => (
                                   <div key={index} className="flex items-center justify-between text-sm">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-medium">{gpu.model}</span>
-                                      <span className="text-gray-700">({gpu.vram_gb}GB)</span>
+                                      <span className="font-medium text-gray-900">{gpu.model}</span>
+                                      <span className="text-gray-900">({gpu.vram_gb}GB)</span>
                                     </div>
                                     <div className="font-semibold text-blue-600">
                                       ${(gpu.hourly_price_cents / 100).toFixed(2)}/hr

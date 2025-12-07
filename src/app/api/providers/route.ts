@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db/postgres';
 import { connectToMongoDB } from '@/lib/db/mongodb';
+import { NodeModel } from '@/lib/models/Node';
 
 // GET /api/providers - List all online providers
 export async function GET(request: NextRequest) {
   try {
+    // Lazy Cron: Mark stale nodes offline before fetching
+    // This ensures consumers always see current node status without external cron
+    await NodeModel.markStaleNodesOffline(15); // 15 seconds timeout
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status'); // 'online', 'offline', or null (all)
     const region = searchParams.get('region');

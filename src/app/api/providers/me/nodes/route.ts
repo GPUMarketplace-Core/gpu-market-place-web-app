@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     // Lazy Cron: Mark stale nodes offline before fetching
     // This ensures the dashboard always shows current status without external cron
-    await NodeModel.markStaleNodesOffline(10); // 10 seconds timeout
+    await NodeModel.markStaleNodesOffline(15); // 15 seconds timeout
 
     // Fetch nodes from PostgreSQL
     const result = await pool.query(

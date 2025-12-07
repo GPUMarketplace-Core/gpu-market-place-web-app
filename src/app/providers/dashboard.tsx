@@ -596,26 +596,26 @@ export default function ProviderDashboard() {
                   </div>
 
                   {/* Daily earnings trend */}
-                  <div className="bg-white/90 rounded-2xl p-6 border border-gray-200/60 shadow-inner mb-6">
+                  <div className="bg-white/90 dark:bg-gray-800/90 rounded-2xl p-6 border border-gray-200/60 dark:border-gray-700/60 shadow-inner mb-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Daily Earnings (This Month)</h3>
-                      <span className="text-xs text-gray-500">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Daily Earnings (This Month)</h3>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         {earnings.daily.length} day{earnings.daily.length === 1 ? '' : 's'} with payouts
                       </span>
                     </div>
                     {earnings.daily.length === 0 ? (
-                      <div className="text-sm text-gray-600">No captured payments yet this month.</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">No captured payments yet this month.</div>
                     ) : (
                       <div className="space-y-2">
                         {earnings.daily.map((d: any) => (
                           <div
                             key={d.day}
-                            className="flex items-center gap-3 text-sm text-gray-800"
+                            className="flex items-center gap-3 text-sm text-gray-800 dark:text-gray-200"
                           >
-                            <div className="w-32 text-gray-600">
+                            <div className="w-32 text-gray-600 dark:text-gray-400">
                               {new Date(d.day).toLocaleDateString()}
                             </div>
-                            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
                                 style={{
@@ -634,7 +634,7 @@ export default function ProviderDashboard() {
                                 }}
                               />
                             </div>
-                            <div className="w-24 text-right font-medium">
+                            <div className="w-24 text-right font-medium text-gray-800 dark:text-gray-200">
                               ${(d.providerEarningsCents / 100).toFixed(2)}
                             </div>
                           </div>
@@ -644,34 +644,34 @@ export default function ProviderDashboard() {
                   </div>
 
                   {/* Summary stats */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-800">
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-800 dark:text-gray-200">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">
                         Paid Jobs
                       </div>
-                      <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                         {earnings.summary.paidJobs}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Jobs with captured payments this month
                       </div>
                     </div>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">
                         Paid Orders
                       </div>
-                      <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                         {earnings.summary.paidOrders}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Some orders may contain multiple jobs
                       </div>
                     </div>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">
                         Platform Take Rate
                       </div>
-                      <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                         {earnings.summary.grossRevenueCents > 0
                           ? `${(
                               (earnings.summary.platformFeesCents /
@@ -680,7 +680,7 @@ export default function ProviderDashboard() {
                             ).toFixed(1)}%`
                           : '—'}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Fees as a share of total customer spend this month
                       </div>
                     </div>

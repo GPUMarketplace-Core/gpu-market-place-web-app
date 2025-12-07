@@ -229,14 +229,13 @@ export class JobModel {
       const totalCents = subtotalCents + feesCents;
 
       // Update order with actual pricing
+      // Note: total_cents is a generated column, so it will be computed automatically
       await client.query(
         `UPDATE orders
          SET subtotal_cents = $1,
-             fees_cents = $2,
-             total_cents = $3,
-             updated_at = NOW()
-         WHERE id = $4`,
-        [subtotalCents, feesCents, totalCents, job.order_id]
+             fees_cents = $2
+         WHERE id = $3`,
+        [subtotalCents, feesCents, job.order_id]
       );
 
       console.log(`Job ${jobId} finalized: ${billableHours.toFixed(2)}h @ $${(hourlyPriceCents/100).toFixed(2)}/h = $${(totalCents/100).toFixed(2)}`);

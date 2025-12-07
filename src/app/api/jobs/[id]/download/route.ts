@@ -106,8 +106,6 @@ export async function GET(
           url: `/api/jobs/${jobId}/files/output.log`, // Mock URL
         },
       ],
-      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(), // 1 hour
-      message: 'Download links are valid for 1 hour',
     };
 
     return NextResponse.json(downloadLinks);

@@ -180,8 +180,13 @@ export async function POST(
     );
   } catch (error: any) {
     console.error('POST /nodes/[nodeId]/heartbeat error:', error);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
-      { error: 'Failed to process heartbeat', details: error.message },
+      { 
+        error: 'Failed to process heartbeat', 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+      },
       { status: 500 }
     );
   }

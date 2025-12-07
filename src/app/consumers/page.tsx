@@ -43,6 +43,55 @@ interface Job {
   failure_reason?: string;
 }
 
+// Helper function to format duration
+function formatDuration(startDate: string | undefined, endDate: string | undefined): string | null {
+  if (!startDate || !endDate) return null;
+  
+  const start = new Date(startDate).getTime();
+  const end = new Date(endDate).getTime();
+  const durationMs = end - start;
+  
+  if (durationMs < 0) return null;
+  
+  const seconds = Math.floor(durationMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  
+  if (days > 0) {
+    return `${days}d ${hours % 24}h ${minutes % 60}m`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${seconds % 60}s`;
+  } else {
+    return `${seconds}s`;
+  }
+}
+
+// Helper function to get elapsed time for running jobs
+function getElapsedTime(startDate: string | undefined): string | null {
+  if (!startDate) return null;
+  
+  const start = new Date(startDate).getTime();
+  const now = Date.now();
+  const durationMs = now - start;
+  
+  if (durationMs < 0) return null;
+  
+  const seconds = Math.floor(durationMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes % 60}m`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${seconds % 60}s`;
+  } else {
+    return `${seconds}s`;
+  }
+}
+
 export default function ConsumerDashboard() {
   const { user, accessToken, refreshUser, clear } = useAuth();
   const router = useRouter();
@@ -53,6 +102,7 @@ export default function ConsumerDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError] = useState<string | null>(null);
+  const [lastJobsUpdate, setLastJobsUpdate] = useState<Date | null>(null);
 
   // Job Submission State
   const [showJobModal, setShowJobModal] = useState(false);
@@ -96,12 +146,22 @@ export default function ConsumerDashboard() {
         setLoading(false);
       }
     }
+
+    // Initial fetch
     fetchProviders();
+
+    // Poll every 10 seconds for provider status updates
+    const intervalId = setInterval(() => {
+      fetchProviders();
+    }, 10000); // 10 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (showLoading = false) => {
     if (!accessToken) return;
-    setJobsLoading(true);
+    if (showLoading) setJobsLoading(true);
     try {
       const res = await fetch('/api/jobs', {
         headers: { Authorization: `Bearer ${accessToken}` }
@@ -115,6 +175,8 @@ export default function ConsumerDashboard() {
           return bDate.getTime() - aDate.getTime();
         });
         setJobs(sortedJobs);
+        setLastJobsUpdate(new Date());
+        setJobsError(null);
       } else {
         setJobsError('Failed to fetch jobs');
       }
@@ -127,9 +189,23 @@ export default function ConsumerDashboard() {
 
   useEffect(() => {
     if (activeTab === 'jobs' || activeTab === 'dashboard') {
-      fetchJobs();
+      fetchJobs(true);
     }
   }, [activeTab, accessToken]);
+
+  // Auto-refresh jobs every 5 seconds when there are active jobs
+  useEffect(() => {
+    const hasActiveJobs = jobs.some(j => j.status === 'queued' || j.status === 'running');
+    
+    // Always poll if on jobs/dashboard tab, more frequently if there are active jobs
+    if ((activeTab === 'jobs' || activeTab === 'dashboard') && accessToken) {
+      const interval = setInterval(() => {
+        fetchJobs();
+      }, hasActiveJobs ? 3000 : 10000); // 3s if active jobs, 10s otherwise
+      
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, accessToken, jobs]);
 
   const handleOpenJobModal = (provider: Provider, nodeId: string) => {
     setSelectedProvider(provider);
@@ -165,7 +241,7 @@ export default function ConsumerDashboard() {
       if (res.ok) {
         setShowJobModal(false);
         setActiveTab('jobs');
-        fetchJobs();
+        fetchJobs(true);
       } else {
         const data = await res.json();
         setSubmitError(data.error || 'Failed to submit job');
@@ -352,13 +428,37 @@ export default function ConsumerDashboard() {
               {/* Recent Jobs */}
               <div className="bg-white rounded-2xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Recent Jobs</h3>
-                  <button 
-                    onClick={() => setActiveTab('jobs')}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    View All
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-gray-900">Recent Jobs</h3>
+                    {jobs.some(j => j.status === 'queued' || j.status === 'running') && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                        Auto-updating
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {lastJobsUpdate && (
+                      <span className="text-xs text-gray-400">
+                        Updated {lastJobsUpdate.toLocaleTimeString()}
+                      </span>
+                    )}
+                    <button 
+                      onClick={() => fetchJobs(true)}
+                      className="text-sm text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition-colors"
+                      title="Refresh"
+                    >
+                      <svg className={`w-4 h-4 ${jobsLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('jobs')}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      View All
+                    </button>
+                  </div>
                 </div>
                 
                 {jobs.length === 0 ? (
@@ -381,8 +481,26 @@ export default function ConsumerDashboard() {
                         
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900">{job.title}</h4>
-                          <div className="text-sm text-gray-600">
-                            {new Date(job.submitted_at).toLocaleDateString()}
+                          <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <span>{new Date(job.submitted_at).toLocaleDateString()}</span>
+                            {/* Show duration for completed/failed jobs */}
+                            {(job.status === 'succeeded' || job.status === 'failed') && job.started_at && job.finished_at && (
+                              <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {formatDuration(job.started_at, job.finished_at)}
+                              </span>
+                            )}
+                            {/* Show elapsed time for running jobs */}
+                            {job.status === 'running' && job.started_at && (
+                              <span className="inline-flex items-center gap-1 text-xs text-blue-600">
+                                <svg className="w-3 h-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {getElapsedTime(job.started_at)} elapsed
+                              </span>
+                            )}
                           </div>
                         </div>
                         
@@ -505,11 +623,37 @@ export default function ConsumerDashboard() {
 
           {activeTab === 'jobs' && (
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">My Jobs</h2>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-semibold text-gray-900">My Jobs</h2>
+                  {jobs.some(j => j.status === 'queued' || j.status === 'running') && (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
+                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                      Auto-updating every 3s
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  {lastJobsUpdate && (
+                    <span className="text-xs text-gray-400">
+                      Last updated: {lastJobsUpdate.toLocaleTimeString()}
+                    </span>
+                  )}
+                  <button 
+                    onClick={() => fetchJobs(true)}
+                    disabled={jobsLoading}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    <svg className={`w-4 h-4 ${jobsLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                  </button>
+                </div>
+              </div>
               {jobsError && <div className="text-sm text-red-600 mb-4">{jobsError}</div>}
-              {jobsLoading && <div className="text-sm text-gray-900 mb-4">Loading jobs...</div>}
 
-              {!jobsLoading && jobs.length === 0 ? (
+              {jobs.length === 0 && !jobsLoading ? (
                 <div className="text-center py-8 text-gray-900">No jobs submitted yet.</div>
               ) : (
                 <div className="space-y-4">
@@ -518,15 +662,36 @@ export default function ConsumerDashboard() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900 mb-1">{job.title}</h4>
-                          <div className="text-sm text-gray-600 mb-2">
-                            Submitted: {new Date(job.submitted_at).toLocaleDateString()}
+                          <div className="text-sm text-gray-600 mb-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                            <span>Submitted: {new Date(job.submitted_at).toLocaleString()}</span>
                             {job.started_at && (
-                              <span className="ml-3">Started: {new Date(job.started_at).toLocaleDateString()}</span>
+                              <span>Started: {new Date(job.started_at).toLocaleString()}</span>
                             )}
                             {job.finished_at && (
-                              <span className="ml-3">Finished: {new Date(job.finished_at).toLocaleDateString()}</span>
+                              <span>Finished: {new Date(job.finished_at).toLocaleString()}</span>
                             )}
                           </div>
+                          
+                          {/* Duration display */}
+                          {(job.status === 'succeeded' || job.status === 'failed') && job.started_at && job.finished_at && (
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-lg mb-2">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Duration: <strong>{formatDuration(job.started_at, job.finished_at)}</strong></span>
+                            </div>
+                          )}
+                          
+                          {/* Elapsed time for running jobs */}
+                          {job.status === 'running' && job.started_at && (
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-lg mb-2">
+                              <svg className="w-3.5 h-3.5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Elapsed: <strong>{getElapsedTime(job.started_at)}</strong></span>
+                            </div>
+                          )}
+                          
                           {job.failure_reason && (
                             <div className="text-sm text-red-600">Error: {job.failure_reason}</div>
                           )}

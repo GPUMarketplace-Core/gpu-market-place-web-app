@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { useRouter } from 'next/navigation';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function ProviderDashboard() {
   const { accessToken, user, refreshUser, clear } = useAuth();
@@ -87,7 +88,7 @@ export default function ProviderDashboard() {
   }
 
   if (!user) {
-    return <div className="p-6 text-sm text-gray-900">Loading user…</div>;
+    return <div className="p-6 text-sm text-gray-900 dark:text-gray-100">Loading user…</div>;
   }
 
   if (user.role !== 'provider') {
@@ -127,9 +128,9 @@ export default function ProviderDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-fuchsia-50 to-pink-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-fuchsia-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white/80 backdrop-blur-xl shadow-xl border-r border-gray-200/50 animate-slide-in-right">
+      <div className="w-64 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-xl border-r border-gray-200/50 dark:border-gray-700/50 animate-slide-in-right">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-8 group cursor-pointer">
             <div className="w-10 h-10 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
@@ -139,14 +140,14 @@ export default function ProviderDashboard() {
           </div>
           
           <nav className="space-y-1">
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">OVERVIEW</div>
+            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">OVERVIEW</div>
             
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
                 activeTab === 'dashboard'
                   ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,7 +161,7 @@ export default function ProviderDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
                 activeTab === 'jobs'
                   ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +175,7 @@ export default function ProviderDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
                 activeTab === 'earnings'
                   ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +189,7 @@ export default function ProviderDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
                 activeTab === 'reviews'
                   ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +203,7 @@ export default function ProviderDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
                 activeTab === 'knowledge'
                   ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,14 +212,14 @@ export default function ProviderDashboard() {
               Knowledge Base
             </button>
             
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mt-8 mb-3">SETTINGS</div>
+            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-8 mb-3">SETTINGS</div>
             
             <button
               onClick={() => setActiveTab('settings')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
                 activeTab === 'settings'
                   ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 hover:bg-gray-100 hover:scale-102'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,16 +248,10 @@ export default function ProviderDashboard() {
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 px-6 py-5 shadow-sm">
+        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-6 py-5 shadow-sm">
           <div className="flex items-center justify-between animate-fade-in">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700">Provider Profile</h1>
-            <div className="flex items-center gap-4">
-              <button className="p-2 hover:bg-gray-100 rounded-lg">
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                </svg>
-              </button>
-            </div>
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300">Provider Profile</h1>
+            <ThemeToggle />
           </div>
         </div>
 
@@ -265,7 +260,7 @@ export default function ProviderDashboard() {
           {activeTab === 'dashboard' && (
             <>
               {/* Profile Card */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.01] animate-scale-in">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-gray-200/50 dark:border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.01] animate-scale-in">
                 <div className="flex items-start gap-6">
                   <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
                     <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,7 +269,7 @@ export default function ProviderDashboard() {
                   </div>
                   
                   <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-1">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
                       {provider?.display_name || user?.email?.split('@')[0] || 'Provider'}
                     </h2>
                     <div className="text-sm text-gray-600 mb-4">
@@ -295,7 +290,7 @@ export default function ProviderDashboard() {
                         <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
                       </svg>
                     </div>
-                    <div className="text-sm font-medium text-gray-900 mb-1">Reviews</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Reviews</div>
                     <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
                       <span className="text-yellow-400">★★★★</span>
                       <span className="text-gray-300">★</span>
@@ -307,34 +302,34 @@ export default function ProviderDashboard() {
               </div>
 
               {/* My Nodes Section */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 animate-scale-in animation-delay-300">
-                <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-6">My Nodes</h3>
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-gray-200/50 dark:border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-500 animate-scale-in animation-delay-300">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">My Nodes</h3>
                 {nodesError && <div className="text-sm text-red-600 mb-4">{nodesError}</div>}
                 {nodes.length === 0 ? (
-                  <div className="text-sm text-gray-900">No nodes registered yet.</div>
+                  <div className="text-sm text-gray-900 dark:text-gray-100">No nodes registered yet.</div>
                 ) : (
                   <div className="space-y-4">
                     {nodes.map((node) => (
-                      <div key={node.id} className="border border-gray-200 rounded-2xl p-6 hover:border-violet-300 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] bg-gradient-to-br from-white to-gray-50">
+                      <div key={node.id} className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <h4 className="font-medium text-gray-900">{node.name || 'Unnamed Node'}</h4>
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100">{node.name || 'Unnamed Node'}</h4>
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                node.status === 'online' 
-                                  ? 'bg-green-100 text-green-800' 
+                                node.status === 'online'
+                                  ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300'
                                   : node.status === 'offline'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-yellow-100 text-yellow-800'
+                                  ? 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300'
+                                  : 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300'
                               }`}>
                                 {node.status}
                               </span>
                               {node.has_pricing ? (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">
                                   Pricing Set
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
                                   No Pricing
                                 </span>
                               )}
@@ -356,17 +351,17 @@ export default function ProviderDashboard() {
                             </div>
                             
                             {node.specs?.gpus && (
-                              <div className="bg-gray-50 rounded-lg p-3">
-                                <div className="text-sm font-medium text-gray-700 mb-2">GPU Pricing:</div>
+                              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">GPU Pricing:</div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                   {node.specs.gpus.map((gpu: any, index: number) => (
-                                    <div key={index} className="text-sm text-gray-600">
+                                    <div key={index} className="text-sm text-gray-600 dark:text-gray-400">
                                       {gpu.model}: {gpu.hourly_price_cents > 0 ? `$${(gpu.hourly_price_cents / 100).toFixed(2)}/hr` : 'No pricing'}
                                     </div>
                                   ))}
                                 </div>
                                 {node.has_pricing && (
-                                  <div className="text-sm font-semibold text-green-600 mt-2 pt-2 border-t border-gray-200">
+                                  <div className="text-sm font-semibold text-green-600 dark:text-green-400 mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
                                     Total Potential: ${(node.specs.gpus.reduce((sum: number, gpu: any) => sum + (gpu.hourly_price_cents || 0), 0) / 100).toFixed(2)}/hr
                                   </div>
                                 )}
@@ -390,26 +385,26 @@ export default function ProviderDashboard() {
                 )}
               </div>
 
-              {/* History Section */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 animate-scale-in animation-delay-600">
+              {/* Job History Section */}
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-500 animate-scale-in animation-delay-600">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700">History</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Job History</h3>
                   <button
                     onClick={() => setActiveTab('jobs')}
-                    className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-all duration-300 hover:scale-110"
+                    className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-300 hover:scale-110"
                   >
                     See All →
                   </button>
                 </div>
-                
+
                 <div className="space-y-3">
                   {jobs.slice(0, 3).map((job, index) => (
-                    <div key={job.id} className="flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-violet-50 hover:to-fuchsia-50 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md">
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-medium text-gray-600">{String.fromCharCode(65 + index)}</span>
+                    <div key={job.id} className="flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-violet-50 hover:to-fuchsia-50 dark:hover:from-violet-900/30 dark:hover:to-fuchsia-900/30 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md">
+                      <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300">{String.fromCharCode(65 + index)}</span>
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">{job.title}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{job.title}</div>
                         <div className="text-xs text-gray-500">{new Date(job.submitted_at).toLocaleDateString()}</div>
                       </div>
                       <button
@@ -426,18 +421,18 @@ export default function ProviderDashboard() {
           )}
 
           {activeTab === 'jobs' && (
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl animate-scale-in">
-              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-8">Job Management</h2>
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-xl animate-scale-in">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">Job Management</h2>
               {jobsError && <div className="text-sm text-red-600 mb-4">{jobsError}</div>}
               {jobs.length === 0 ? (
-                <div className="text-center py-8 text-gray-900">No jobs yet.</div>
+                <div className="text-center py-8 text-gray-900 dark:text-gray-100">No jobs yet.</div>
               ) : (
                 <div className="space-y-4">
                   {jobs.map((job) => (
-                    <div key={job.id} className="border border-gray-200 rounded-2xl p-6 hover:border-violet-300 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01] bg-gradient-to-br from-white to-gray-50">
+                    <div key={job.id} className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01] bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 mb-1">{job.title}</h4>
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">{job.title}</h4>
                           <div className="text-sm text-gray-600 mb-2">
                             Submitted: {new Date(job.submitted_at).toLocaleDateString()}
                             {job.started_at && (
@@ -473,7 +468,7 @@ export default function ProviderDashboard() {
           )}
 
           {activeTab === 'earnings' && (
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl animate-scale-in">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-xl animate-scale-in">
               <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-8">Earnings Overview</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in">
@@ -496,60 +491,60 @@ export default function ProviderDashboard() {
           )}
 
           {activeTab === 'reviews' && (
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Reviews & Ratings</h2>
-              <div className="text-center py-8 text-gray-900">Reviews functionality coming soon...</div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Reviews & Ratings</h2>
+              <div className="text-center py-8 text-gray-900 dark:text-gray-100">Reviews functionality coming soon...</div>
             </div>
           )}
 
           {activeTab === 'knowledge' && (
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Knowledge Base</h2>
-              <div className="text-center py-8 text-gray-900">Knowledge base coming soon...</div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Knowledge Base</h2>
+              <div className="text-center py-8 text-gray-900 dark:text-gray-100">Knowledge base coming soon...</div>
             </div>
           )}
 
           {activeTab === 'settings' && (
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Settings</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Settings</h2>
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Profile Information</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Profile Information</h3>
                   {error && <div className="text-sm text-red-600 mb-4">{error}</div>}
                   {provider ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">{provider.email}</div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                        <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">{provider.email}</div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
-                        <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">{provider.display_name || '-'}</div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display Name</label>
+                        <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">{provider.display_name || '-'}</div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
-                        <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">{provider.company_name || '-'}</div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company</label>
+                        <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">{provider.company_name || '-'}</div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3 capitalize">{provider.status}</div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                        <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3 capitalize">{provider.status}</div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                        <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">{provider.rating_avg} ({provider.rating_count} reviews)</div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating</label>
+                        <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">{provider.rating_avg} ({provider.rating_count} reviews)</div>
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Payout Account</label>
-                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Payout Account</label>
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               {provider.payout_account_id ? (
                                 <div className="space-y-2">
-                                  <div className="text-sm text-gray-900 font-mono">
+                                  <div className="text-sm text-gray-900 dark:text-gray-100 font-mono">
                                     {showPayoutDetails ? provider.payout_account_id : '••••••••••••••••'}
                                   </div>
                                   {payoutDetails && showPayoutDetails && (
-                                    <div className="text-xs text-gray-600 space-y-1 mt-2 pt-2 border-t border-gray-300">
+                                    <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1 mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
                                       <div>Email: {payoutDetails.email || '-'}</div>
                                       {payoutDetails.externalAccount && (
                                         <>
@@ -557,7 +552,7 @@ export default function ProviderDashboard() {
                                           <div>Account: ••••{payoutDetails.externalAccount.last4}</div>
                                           <div className="flex items-center gap-2 mt-1">
                                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                              payoutDetails.payoutsEnabled ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                              payoutDetails.payoutsEnabled ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300' : 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300'
                                             }`}>
                                               {payoutDetails.payoutsEnabled ? 'Payouts Enabled' : 'Setup Incomplete'}
                                             </span>
@@ -568,7 +563,7 @@ export default function ProviderDashboard() {
                                   )}
                                 </div>
                               ) : (
-                                <div className="text-sm text-gray-900">No payout account configured</div>
+                                <div className="text-sm text-gray-900 dark:text-gray-100">No payout account configured</div>
                               )}
                             </div>
                             <div className="flex gap-2 ml-4">
@@ -576,14 +571,14 @@ export default function ProviderDashboard() {
                                 <button
                                   onClick={handleViewPayoutDetails}
                                   disabled={payoutLoading}
-                                  className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                                  className="px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/50 rounded-lg transition-colors disabled:opacity-50"
                                 >
                                   {payoutLoading ? 'Loading...' : showPayoutDetails ? 'Hide' : 'View'}
                                 </button>
                               )}
                               <button
                                 onClick={handleEditPayoutAccount}
-                                className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 rounded-lg transition-colors"
                               >
                                 {provider.payout_account_id ? 'Edit' : 'Setup'}
                               </button>
@@ -593,19 +588,19 @@ export default function ProviderDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-900">Loading profile...</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-100">Loading profile...</div>
                   )}
                 </div>
 
-                <div className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Provider Agent Token</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Use this token to authenticate your Provider Agent CLI. 
-                    <span className="text-red-600 font-medium ml-1">Do not share this token with anyone.</span>
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Provider Agent Token</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Use this token to authenticate your Provider Agent CLI.
+                    <span className="text-red-600 dark:text-red-400 font-medium ml-1">Do not share this token with anyone.</span>
                   </p>
-                  
+
                   <div className="relative">
-                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 font-mono text-sm text-gray-600 break-all">
+                    <div className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-4 font-mono text-sm text-gray-600 dark:text-gray-300 break-all">
                       {accessToken}
                     </div>
                     <button
@@ -665,10 +660,10 @@ function JobDetailsModal({ job, onClose }: {
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl animate-scale-in border border-gray-200">
+    <div className="fixed inset-0 backdrop-blur-md bg-black/30 dark:bg-black/50 flex items-center justify-center z-50 animate-fade-in">
+      <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl animate-scale-in border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-8">
-          <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700">Job Details</h3>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Job Details</h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-300 transform hover:scale-110 active:scale-95"
@@ -682,18 +677,18 @@ function JobDetailsModal({ job, onClose }: {
         <div className="space-y-4">
           {/* Job Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
-            <div className="text-base text-gray-900 bg-gray-50 rounded-lg p-3">{job.title}</div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
+            <div className="text-base text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">{job.title}</div>
           </div>
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-              job.status === 'succeeded' ? 'bg-green-100 text-green-800' :
-              job.status === 'failed' ? 'bg-red-100 text-red-800' :
-              job.status === 'running' ? 'bg-blue-100 text-blue-800' :
-              'bg-gray-100 text-gray-800'
+              job.status === 'succeeded' ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300' :
+              job.status === 'failed' ? 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300' :
+              job.status === 'running' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300' :
+              'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
             }`}>
               {job.status}
             </span>
@@ -702,23 +697,23 @@ function JobDetailsModal({ job, onClose }: {
           {/* Timestamps */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Submitted At</label>
-              <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Submitted At</label>
+              <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                 {new Date(job.submitted_at).toLocaleString()}
               </div>
             </div>
             {job.started_at && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Started At</label>
-                <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Started At</label>
+                <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                   {new Date(job.started_at).toLocaleString()}
                 </div>
               </div>
             )}
             {job.finished_at && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Finished At</label>
-                <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Finished At</label>
+                <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                   {new Date(job.finished_at).toLocaleString()}
                 </div>
               </div>
@@ -728,18 +723,18 @@ function JobDetailsModal({ job, onClose }: {
           {/* Job Details */}
           {job.description && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">{job.description}</div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+              <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">{job.description}</div>
             </div>
           )}
 
           {/* Additional Info */}
-          <div className="bg-gradient-to-r from-violet-50 to-fuchsia-50 border border-violet-200 rounded-2xl p-5 shadow-sm">
+          <div className="bg-fuchsia-50 dark:bg-fuchsia-900/30 border border-fuchsia-200 dark:border-fuchsia-700 rounded-2xl p-5 shadow-sm">
             <div className="flex items-start gap-2">
-              <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-fuchsia-600 dark:text-fuchsia-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <div className="text-sm text-blue-800">
+              <div className="text-sm text-fuchsia-800 dark:text-fuchsia-100">
                 <p className="font-medium mb-1">Provider Information</p>
                 <p>This view shows job details from the provider perspective. Consumer personal information is not displayed for privacy reasons.</p>
               </div>
@@ -826,7 +821,7 @@ function PricingModal({ node, onClose, accessToken, onSuccess }: {
   if (!node.specs?.gpus) {
     return (
       <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
           <h3 className="text-lg font-semibold mb-4">Update Pricing</h3>
           <p className="text-sm text-red-600 mb-4">No GPU specifications found for this node. Please add node specs first.</p>
           <button 
@@ -842,8 +837,8 @@ function PricingModal({ node, onClose, accessToken, onSuccess }: {
 
   return (
     <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Update Pricing - {node.name || 'Unnamed Node'}</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Update Pricing - {node.name || 'Unnamed Node'}</h3>
         
         {error && (
           <div className="text-sm text-red-600 mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
@@ -855,19 +850,19 @@ function PricingModal({ node, onClose, accessToken, onSuccess }: {
           <div className="space-y-4">
             {node.specs.gpus.map((gpu: any, index: number) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4">
-                <div className="font-semibold text-gray-900 mb-2">GPU {index + 1}</div>
-                <div className="text-sm text-gray-900 mb-2">
+                <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">GPU {index + 1}</div>
+                <div className="text-sm text-gray-900 dark:text-gray-100 mb-2">
                   Model: {gpu.model || 'Unknown'} | Memory: {gpu.memory_gb || 'Unknown'}GB
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-semibold text-gray-900">Hourly Price ($):</label>
+                  <label className="text-sm font-semibold text-gray-900 dark:text-gray-100">Hourly Price ($):</label>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
                     value={prices[index] || '0.00'}
                     onChange={(e) => handlePriceChange(index, e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     disabled={loading}
                   />
                 </div>

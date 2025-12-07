@@ -7,6 +7,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyGoogleToken } from '@/lib/auth/oauth';
 import { UserModel } from '@/lib/models/User';
 import pool from '@/lib/db/postgres';
+import path from 'path';
+import { stat } from 'fs/promises';
+import { existsSync } from 'fs';
 
 export async function GET(
   req: NextRequest,
@@ -78,32 +81,56 @@ export async function GET(
       return NextResponse.json({ error: 'No artifacts available for this job' }, { status: 404 });
     }
 
-    // 7. Generate download links
-    // TODO: In a real implementation, you would:
-    //   - Parse artifacts_ref (could be S3 URL, IPFS hash, etc.)
-    //   - Generate pre-signed URLs for S3
-    //   - Retrieve from IPFS
-    //   - Fetch from MongoDB GridFS
-    // For now, we'll return a mock download structure
+    // 7. Generate download links from artifacts_ref
+    // artifacts_ref is stored like: /uploads/outputs/timestamp_filename.zip
+    const artifactsPath = job.artifacts_ref;
+    const fullPath = path.join(process.cwd(), 'public', artifactsPath);
+    
+    // Get file info
+    let fileSize = 'Unknown';
+    if (existsSync(fullPath)) {
+      try {
+        const stats = await stat(fullPath);
+        const sizeInMB = stats.size / (1024 * 1024);
+        fileSize = sizeInMB >= 1 
+          ? `${sizeInMB.toFixed(2)} MB` 
+          : `${(stats.size / 1024).toFixed(2)} KB`;
+      } catch (e) {
+        console.error('Error getting file stats:', e);
+      }
+    }
+    
+    // Get original filename (remove timestamp prefix)
+    const originalFilename = path.basename(artifactsPath).replace(/^\d+_/, '');
+    
+    // Determine content type based on file extension
+    const ext = path.extname(artifactsPath).toLowerCase();
+    const contentTypes: Record<string, string> = {
+      '.zip': 'application/zip',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.mp4': 'video/mp4',
+      '.avi': 'video/x-msvideo',
+      '.mov': 'video/quicktime',
+      '.blend': 'application/octet-stream',
+      '.log': 'text/plain',
+      '.txt': 'text/plain',
+    };
+    const contentType = contentTypes[ext] || 'application/octet-stream';
 
     const downloadLinks = {
       success: true,
       jobId: job.job_id,
       jobTitle: job.title,
       artifactsRef: job.artifacts_ref,
-      // Mock download links - replace with actual implementation
       files: [
         {
-          name: 'results.zip',
-          size: '1.2 MB',
-          type: 'application/zip',
-          url: `/api/jobs/${jobId}/files/results.zip`, // Mock URL
-        },
-        {
-          name: 'output.log',
-          size: '45 KB',
-          type: 'text/plain',
-          url: `/api/jobs/${jobId}/files/output.log`, // Mock URL
+          name: originalFilename,
+          size: fileSize,
+          type: contentType,
+          // Direct link to the file in public folder (auth is verified before this response)
+          url: artifactsPath,
         },
       ],
     };

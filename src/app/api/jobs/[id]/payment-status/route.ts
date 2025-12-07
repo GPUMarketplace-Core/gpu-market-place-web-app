@@ -80,6 +80,8 @@ export async function GET(
       finishedAt: job.finished_at,
       hasArtifacts: !!job.artifacts_ref,
       artifactsRef: job.artifacts_ref,
+      orderId: job.order_id,
+      providerId: job.provider_id,
       payment: {
         exists: !!job.payment_id,
         status: job.payment_status || null,

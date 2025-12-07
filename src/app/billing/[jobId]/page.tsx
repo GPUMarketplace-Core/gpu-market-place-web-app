@@ -340,6 +340,12 @@ function DownloadPage({ jobId, paymentStatus, accessToken }: { jobId: string; pa
   const [downloads, setDownloads] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [checkingReview, setCheckingReview] = useState(true);
+  const [hasReview, setHasReview] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchDownloadLinks() {
@@ -362,9 +368,212 @@ function DownloadPage({ jobId, paymentStatus, accessToken }: { jobId: string; pa
       }
     }
 
-    fetchDownloadLinks();
-  }, [jobId, accessToken]);
+    async function checkReviewStatus() {
+      if (!paymentStatus?.orderId) {
+        setCheckingReview(false);
+        return;
+      }
 
+      try {
+        const res = await fetch(`/api/reviews?orderId=${paymentStatus.orderId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setHasReview(data.hasReview);
+        }
+      } catch (err) {
+        console.error('Failed to check review status:', err);
+      } finally {
+        setCheckingReview(false);
+      }
+    }
+
+    fetchDownloadLinks();
+    checkReviewStatus();
+  }, [jobId, accessToken, paymentStatus]);
+
+  const handleSubmitReview = async () => {
+    if (rating === 0) {
+      setReviewError('Please select a rating');
+      return;
+    }
+
+    if (!paymentStatus?.orderId) {
+      setReviewError('Order ID not found');
+      return;
+    }
+
+    setSubmittingReview(true);
+    setReviewError(null);
+
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          orderId: paymentStatus.orderId,
+          rating,
+          comment: comment.trim() || null,
+        }),
+      });
+
+      if (res.ok) {
+        setHasReview(true);
+        setShowReviewModal(false);
+        // Reset form
+        setRating(0);
+        setComment('');
+      } else {
+        const data = await res.json();
+        setReviewError(data.error || 'Failed to submit review');
+      }
+    } catch (err: any) {
+      setReviewError(err.message || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  // Show loading while checking review status
+  if (checkingReview) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+            </svg>
+          </div>
+          <div className="text-gray-900 font-medium">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show review modal first if payment is successful and no review exists
+  if (!hasReview && paymentStatus?.orderId && paymentStatus?.providerId) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto py-8">
+          <button
+            onClick={() => router.back()}
+            className="text-sm mb-6 text-blue-600 hover:text-blue-700 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </button>
+
+          {/* Payment Success Message */}
+          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-green-900 mb-1">Payment Successful!</h2>
+                <p className="text-sm text-green-700">
+                  Before accessing your files, please rate your experience with the provider.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Review Form */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md mx-auto">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Rate Your Experience</h2>
+              <p className="text-sm text-gray-600">How was your experience with the provider?</p>
+              <p className="text-xs text-gray-500 mt-2">Rating is required to access downloads</p>
+            </div>
+
+            {/* Star Rating */}
+            <div className="mb-6">
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    className="transition-all duration-200 transform hover:scale-110"
+                  >
+                    <svg
+                      className={`w-12 h-12 ${
+                        star <= rating
+                          ? 'text-yellow-400 fill-current'
+                          : 'text-gray-300'
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                      />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <p className="text-center mt-3 text-sm text-gray-600">
+                  You rated: {rating} star{rating > 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+
+            {/* Comment */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Comment (optional)
+              </label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Tell us about your experience..."
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all resize-none"
+                rows={4}
+              />
+            </div>
+
+            {/* Error */}
+            {reviewError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {reviewError}
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="button"
+              onClick={handleSubmitReview}
+              disabled={submittingReview || rating === 0}
+              className="w-full px-4 py-3 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white rounded-xl font-semibold hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg text-base"
+            >
+              {submittingReview ? 'Submitting...' : rating === 0 ? 'Please Select Rating' : 'Submit & Continue to Downloads'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show downloads after review is submitted
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto py-8">
@@ -461,11 +670,6 @@ function DownloadPage({ jobId, paymentStatus, accessToken }: { jobId: string; pa
               </div>
             ) : downloads ? (
               <div className="space-y-4">
-                {downloads.message && (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-                    {downloads.message}
-                  </div>
-                )}
                 <div className="space-y-3">
                   {downloads.files && downloads.files.map((file: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">

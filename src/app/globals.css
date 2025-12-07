@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode */
+@variant dark (.dark &);
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -13,10 +16,15 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.dark) {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {
@@ -40,9 +48,20 @@ select {
   color: #111827; /* text-gray-900 */
 }
 
+.dark input,
+.dark textarea,
+.dark select {
+  color: #f3f4f6; /* text-gray-100 - white text in dark mode */
+}
+
 input::placeholder,
 textarea::placeholder {
   color: #9ca3af; /* text-gray-400 */
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6b7280; /* text-gray-500 - lighter placeholder in dark mode */
 }
 
 /* Custom Animations */

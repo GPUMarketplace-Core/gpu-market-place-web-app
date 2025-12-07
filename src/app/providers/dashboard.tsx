@@ -20,9 +20,17 @@ export default function ProviderDashboard() {
   const [showPayoutDetails, setShowPayoutDetails] = useState(false);
   const [payoutDetails, setPayoutDetails] = useState<any>(null);
   const [payoutLoading, setPayoutLoading] = useState(false);
+  const [earnings, setEarnings] = useState<any | null>(null);
+  const [earningsError, setEarningsError] = useState<string | null>(null);
+  const [earningsLoading, setEarningsLoading] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsSummary, setReviewsSummary] = useState<any | null>(null);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
-  // Ensure we have the latest user when navigating directly with a token in storage
   useEffect(() => {
+    // Ensure we have the latest user when navigating directly with a token in storage
     if (accessToken && !user) {
       void refreshUser();
     }
@@ -83,6 +91,57 @@ export default function ProviderDashboard() {
     return () => clearInterval(intervalId);
   }, [accessToken, user?.role]);
 
+  useEffect(() => {
+    async function fetchEarnings() {
+      if (!accessToken || user?.role !== 'provider') return;
+      setEarningsLoading(true);
+      setEarningsError(null);
+      try {
+        const res = await fetch('/api/providers/me/earnings?range=month', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setEarnings(data);
+        } else {
+          const data = await res.json().catch(() => ({}));
+          setEarningsError(data.error || 'Failed to load earnings');
+        }
+      } catch (err: any) {
+        setEarningsError(err.message || 'Failed to load earnings');
+      } finally {
+        setEarningsLoading(false);
+      }
+    }
+    fetchEarnings();
+  }, [accessToken, user?.role]);
+
+  useEffect(() => {
+    async function fetchReviews() {
+      if (!accessToken || user?.role !== 'provider') return;
+      setReviewsLoading(true);
+      setReviewsError(null);
+      try {
+        const res = await fetch('/api/providers/me/reviews?limit=20', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setReviews(data.reviews || []);
+          setReviewsSummary(data.summary || null);
+        } else {
+          const data = await res.json().catch(() => ({}));
+          setReviewsError(data.error || 'Failed to load reviews');
+        }
+      } catch (err: any) {
+        setReviewsError(err.message || 'Failed to load reviews');
+      } finally {
+        setReviewsLoading(false);
+      }
+    }
+    fetchReviews();
+  }, [accessToken, user?.role]);
+
   if (!accessToken) {
     return <div className="p-6 text-sm">Please sign in.</div>;
   }
@@ -97,7 +156,7 @@ export default function ProviderDashboard() {
 
   const processingJobs = jobs.filter(j => j.status === 'running' || j.status === 'queued').length;
   const completedJobs = jobs.filter(j => j.status === 'succeeded').length;
-  const totalEarnings = nodes.reduce((sum, node) => {
+  const potentialHourlyEarnings = nodes.reduce((sum, node) => {
     return sum + (node.specs?.gpus?.reduce((gpuSum: number, gpu: any) => gpuSum + (gpu.hourly_price_cents || 0), 0) || 0);
   }, 0) / 100;
 
@@ -261,42 +320,60 @@ export default function ProviderDashboard() {
             <>
               {/* Profile Card */}
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-gray-200/50 dark:border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.01] animate-scale-in">
-                <div className="flex items-start gap-6">
-                  <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  
-                  <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                      {provider?.display_name || user?.email?.split('@')[0] || 'Provider'}
-                    </h2>
-                    <div className="text-sm text-gray-600 mb-4">
-                      Processing: <span className="text-blue-600 font-medium">{processingJobs}</span> | 
-                      Completed: <span className="text-green-600 font-medium ml-1">{completedJobs}</span>
-                    </div>
-                    <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-5 5-5-5h5V3h5v14z" />
+                <div className="flex items-center justify-between gap-8">
+                  <div className="flex items-center gap-6">
+                    <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+                      <svg className="w-12 h-12 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      △
-                    </button>
+                    </div>
+
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                        {provider?.display_name || user?.email?.split('@')[0] || 'Provider'}
+                      </h2>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Processing:{' '}
+                        <span className="text-blue-600 dark:text-blue-400 font-medium">{processingJobs}</span> | Completed:{' '}
+                        <span className="text-green-600 dark:text-green-400 font-medium ml-1">{completedJobs}</span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="text-right">
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                       <svg className="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
                       </svg>
                     </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Reviews</div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                      <span className="text-yellow-400">★★★★</span>
-                      <span className="text-gray-300">★</span>
-                      <span className="ml-1">4.5/5</span>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Reviews</div>
+                      {reviewsSummary ? (
+                        <>
+                          <div className="flex items-center justify-end gap-1 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            {Array.from({ length: 5 }).map((_, idx) => (
+                              <span
+                                key={idx}
+                                className={
+                                  idx < Math.round(reviewsSummary.avgRating)
+                                    ? 'text-yellow-400'
+                                    : 'text-gray-300 dark:text-gray-600'
+                                }
+                              >
+                                ★
+                              </span>
+                            ))}
+                            <span className="ml-1">{reviewsSummary.avgRating.toFixed(1)}/5</span>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {reviewsSummary.reviewCount}{' '}
+                            {reviewsSummary.reviewCount === 1 ? 'Review' : 'Reviews'}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-xs text-gray-500 dark:text-gray-400">No reviews yet</div>
+                      )}
                     </div>
-                    <div className="text-xs text-gray-500">1,230 Reviews</div>
                   </div>
                 </div>
               </div>
@@ -469,31 +546,282 @@ export default function ProviderDashboard() {
 
           {activeTab === 'earnings' && (
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-xl animate-scale-in">
-              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-8">Earnings Overview</h2>
+              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 mb-6">
+                Earnings Overview
+              </h2>
+
+              {earningsLoading && (
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">Loading earnings…</div>
+              )}
+              {earningsError && (
+                <div className="text-sm text-red-600 dark:text-red-400 mb-4">{earningsError}</div>
+              )}
+
+              {earnings && (
+                <>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in">
                   <h3 className="text-lg font-semibold text-white/90 mb-2">Total Potential</h3>
-                  <div className="text-4xl font-bold text-white">${totalEarnings.toFixed(2)}/hr</div>
+                      <div className="text-4xl font-bold text-white">
+                        ${potentialHourlyEarnings.toFixed(2)}/hr
+                      </div>
                   <div className="text-sm text-white/80 mt-2">From {nodes.length} nodes</div>
                 </div>
+
                 <div className="bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in animation-delay-300">
                   <h3 className="text-lg font-semibold text-white/90 mb-2">This Month</h3>
-                  <div className="text-4xl font-bold text-white">$1,247.50</div>
-                  <div className="text-sm text-white/80 mt-2">+12% from last month</div>
+                      <div className="text-4xl font-bold text-white">
+                        ${(earnings.summary.providerEarningsCents / 100).toFixed(2)}
                 </div>
+                      <div className="text-sm text-white/80 mt-2">
+                        Platform fees: ${(earnings.summary.platformFeesCents / 100).toFixed(2)}
+                      </div>
+                      {typeof earnings.summary.monthOverMonthChangePct === 'number' && (
+                        <div className="text-xs text-white/80 mt-1">
+                          {earnings.summary.monthOverMonthChangePct >= 0 ? '+' : ''}
+                          {earnings.summary.monthOverMonthChangePct.toFixed(1)}% vs last month
+                        </div>
+                      )}
+                    </div>
+
                 <div className="bg-gradient-to-br from-fuchsia-500 via-pink-500 to-rose-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in animation-delay-600">
                   <h3 className="text-lg font-semibold text-white/90 mb-2">Total Earned</h3>
-                  <div className="text-4xl font-bold text-white">$8,932.15</div>
-                  <div className="text-sm text-white/80 mt-2">Since inception</div>
+                      <div className="text-4xl font-bold text-white">
+                        ${(earnings.lifetime.providerEarningsCents / 100).toFixed(2)}
                 </div>
+                      <div className="text-sm text-white/80 mt-2">
+                        Gross volume: ${(earnings.lifetime.grossRevenueCents / 100).toFixed(2)}
               </div>
+                    </div>
+                  </div>
+
+                  {/* Daily earnings trend */}
+                  <div className="bg-white/90 rounded-2xl p-6 border border-gray-200/60 shadow-inner mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Daily Earnings (This Month)</h3>
+                      <span className="text-xs text-gray-500">
+                        {earnings.daily.length} day{earnings.daily.length === 1 ? '' : 's'} with payouts
+                      </span>
+                    </div>
+                    {earnings.daily.length === 0 ? (
+                      <div className="text-sm text-gray-600">No captured payments yet this month.</div>
+                    ) : (
+                      <div className="space-y-2">
+                        {earnings.daily.map((d: any) => (
+                          <div
+                            key={d.day}
+                            className="flex items-center gap-3 text-sm text-gray-800"
+                          >
+                            <div className="w-32 text-gray-600">
+                              {new Date(d.day).toLocaleDateString()}
+                            </div>
+                            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                                style={{
+                                  width: `${Math.min(
+                                    100,
+                                    (d.providerEarningsCents /
+                                      Math.max(
+                                        1,
+                                        Math.max(
+                                          ...earnings.daily.map(
+                                            (x: any) => x.providerEarningsCents || 0
+                                          )
+                                        )
+                                      )) * 100
+                                  ).toFixed(1)}%`,
+                                }}
+                              />
+                            </div>
+                            <div className="w-24 text-right font-medium">
+                              ${(d.providerEarningsCents / 100).toFixed(2)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Summary stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-800">
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Paid Jobs
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {earnings.summary.paidJobs}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Jobs with captured payments this month
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Paid Orders
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {earnings.summary.paidOrders}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Some orders may contain multiple jobs
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Platform Take Rate
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {earnings.summary.grossRevenueCents > 0
+                          ? `${(
+                              (earnings.summary.platformFeesCents /
+                                earnings.summary.grossRevenueCents) *
+                              100
+                            ).toFixed(1)}%`
+                          : '—'}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Fees as a share of total customer spend this month
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
           {activeTab === 'reviews' && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Reviews & Ratings</h2>
-              <div className="text-center py-8 text-gray-900 dark:text-gray-100">Reviews functionality coming soon...</div>
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-xl animate-scale-in">
+              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 mb-6">
+                Reviews & Ratings
+              </h2>
+
+              {reviewsLoading && (
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">Loading reviews…</div>
+              )}
+              {reviewsError && (
+                <div className="text-sm text-red-600 dark:text-red-400 mb-4">{reviewsError}</div>
+              )}
+
+              {reviewsSummary && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl p-6 shadow-xl text-white">
+                    <div className="text-sm font-semibold text-white/90 mb-1">
+                      Average Rating
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <div className="text-4xl font-bold">
+                        {reviewsSummary.avgRating.toFixed(2)}
+                      </div>
+                      <div className="text-lg">/ 5</div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1 text-sm">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <span
+                          key={idx}
+                          className={
+                            idx < Math.round(reviewsSummary.avgRating)
+                              ? 'text-yellow-300'
+                              : 'text-white/40'
+                          }
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 rounded-2xl p-6 shadow-xl text-white">
+                    <div className="text-sm font-semibold text-white/90 mb-1">
+                      Total Reviews
+                    </div>
+                    <div className="text-4xl font-bold">
+                      {reviewsSummary.reviewCount}
+                    </div>
+                    <div className="text-sm text-white/80 mt-2">
+                      Last review:{' '}
+                      {reviewsSummary.lastReviewAt
+                        ? new Date(reviewsSummary.lastReviewAt).toLocaleDateString()
+                        : '—'}
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {reviews.length === 0 && !reviewsLoading ? (
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                    You don&apos;t have any reviews yet. Once consumers complete jobs and leave
+                    feedback, their comments will appear here.
+                  </div>
+                ) : (
+                  (showAllReviews ? reviews : reviews.slice(0, 3)).map((review) => (
+                    <div
+                      key={review.id}
+                      className="border border-gray-200 dark:border-gray-700 rounded-2xl p-5 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-md transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="font-semibold text-gray-900 dark:text-gray-100">
+                              {review.consumerDisplayName ||
+                                review.consumerEmail?.split('@')[0] ||
+                                'Customer'}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {review.consumerEmail}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm mb-2">
+                            {Array.from({ length: 5 }).map((_, idx) => (
+                              <span
+                                key={idx}
+                                className={
+                                  idx < review.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
+                                }
+                              >
+                                ★
+                              </span>
+                            ))}
+                            <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">
+                              {review.rating}/5
+                            </span>
+                          </div>
+                          {review.comment && (
+                            <div className="text-sm text-gray-800 dark:text-gray-200">
+                              {review.comment}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          {review.createdAt
+                            ? new Date(review.createdAt).toLocaleString()
+                            : ''}
+                          <div className="mt-1">
+                            Order ID:{' '}
+                            <span className="font-mono text-[11px]">
+                              {review.orderId}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {reviews.length > 3 && (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowAllReviews((prev) => !prev)}
+                    className="px-5 py-2.5 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 transition-all duration-300"
+                  >
+                    {showAllReviews ? 'Show Less' : 'View All Reviews'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

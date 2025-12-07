@@ -19,9 +19,16 @@ export default function ProviderDashboard() {
   const [showPayoutDetails, setShowPayoutDetails] = useState(false);
   const [payoutDetails, setPayoutDetails] = useState<any>(null);
   const [payoutLoading, setPayoutLoading] = useState(false);
+  const [earnings, setEarnings] = useState<any | null>(null);
+  const [earningsError, setEarningsError] = useState<string | null>(null);
+  const [earningsLoading, setEarningsLoading] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsSummary, setReviewsSummary] = useState<any | null>(null);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
-  // Ensure we have the latest user when navigating directly with a token in storage
   useEffect(() => {
+    // Ensure we have the latest user when navigating directly with a token in storage
     if (accessToken && !user) {
       void refreshUser();
     }
@@ -82,6 +89,57 @@ export default function ProviderDashboard() {
     return () => clearInterval(intervalId);
   }, [accessToken, user?.role]);
 
+  useEffect(() => {
+    async function fetchEarnings() {
+      if (!accessToken || user?.role !== 'provider') return;
+      setEarningsLoading(true);
+      setEarningsError(null);
+      try {
+        const res = await fetch('/api/providers/me/earnings?range=month', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setEarnings(data);
+        } else {
+          const data = await res.json().catch(() => ({}));
+          setEarningsError(data.error || 'Failed to load earnings');
+        }
+      } catch (err: any) {
+        setEarningsError(err.message || 'Failed to load earnings');
+      } finally {
+        setEarningsLoading(false);
+      }
+    }
+    fetchEarnings();
+  }, [accessToken, user?.role]);
+
+  useEffect(() => {
+    async function fetchReviews() {
+      if (!accessToken || user?.role !== 'provider') return;
+      setReviewsLoading(true);
+      setReviewsError(null);
+      try {
+        const res = await fetch('/api/providers/me/reviews?limit=20', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setReviews(data.reviews || []);
+          setReviewsSummary(data.summary || null);
+        } else {
+          const data = await res.json().catch(() => ({}));
+          setReviewsError(data.error || 'Failed to load reviews');
+        }
+      } catch (err: any) {
+        setReviewsError(err.message || 'Failed to load reviews');
+      } finally {
+        setReviewsLoading(false);
+      }
+    }
+    fetchReviews();
+  }, [accessToken, user?.role]);
+
   if (!accessToken) {
     return <div className="p-6 text-sm">Please sign in.</div>;
   }
@@ -96,7 +154,7 @@ export default function ProviderDashboard() {
 
   const processingJobs = jobs.filter(j => j.status === 'running' || j.status === 'queued').length;
   const completedJobs = jobs.filter(j => j.status === 'succeeded').length;
-  const totalEarnings = nodes.reduce((sum, node) => {
+  const potentialHourlyEarnings = nodes.reduce((sum, node) => {
     return sum + (node.specs?.gpus?.reduce((gpuSum: number, gpu: any) => gpuSum + (gpu.hourly_price_cents || 0), 0) || 0);
   }, 0) / 100;
 
@@ -281,12 +339,6 @@ export default function ProviderDashboard() {
                       Processing: <span className="text-blue-600 font-medium">{processingJobs}</span> | 
                       Completed: <span className="text-green-600 font-medium ml-1">{completedJobs}</span>
                     </div>
-                    <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-5 5-5-5h5V3h5v14z" />
-                      </svg>
-                      △
-                    </button>
                   </div>
                   
                   <div className="text-right">
@@ -474,31 +526,270 @@ export default function ProviderDashboard() {
 
           {activeTab === 'earnings' && (
             <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl animate-scale-in">
-              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-8">Earnings Overview</h2>
+              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-6">
+                Earnings Overview
+              </h2>
+
+              {earningsLoading && (
+                <div className="text-sm text-gray-600 mb-4">Loading earnings…</div>
+              )}
+              {earningsError && (
+                <div className="text-sm text-red-600 mb-4">{earningsError}</div>
+              )}
+
+              {earnings && (
+                <>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in">
                   <h3 className="text-lg font-semibold text-white/90 mb-2">Total Potential</h3>
-                  <div className="text-4xl font-bold text-white">${totalEarnings.toFixed(2)}/hr</div>
+                      <div className="text-4xl font-bold text-white">
+                        ${potentialHourlyEarnings.toFixed(2)}/hr
+                      </div>
                   <div className="text-sm text-white/80 mt-2">From {nodes.length} nodes</div>
                 </div>
+
                 <div className="bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in animation-delay-300">
                   <h3 className="text-lg font-semibold text-white/90 mb-2">This Month</h3>
-                  <div className="text-4xl font-bold text-white">$1,247.50</div>
-                  <div className="text-sm text-white/80 mt-2">+12% from last month</div>
+                      <div className="text-4xl font-bold text-white">
+                        ${(earnings.summary.providerEarningsCents / 100).toFixed(2)}
                 </div>
+                      <div className="text-sm text-white/80 mt-2">
+                        Platform fees: ${(earnings.summary.platformFeesCents / 100).toFixed(2)}
+                      </div>
+                      {typeof earnings.summary.monthOverMonthChangePct === 'number' && (
+                        <div className="text-xs text-white/80 mt-1">
+                          {earnings.summary.monthOverMonthChangePct >= 0 ? '+' : ''}
+                          {earnings.summary.monthOverMonthChangePct.toFixed(1)}% vs last month
+                        </div>
+                      )}
+                    </div>
+
                 <div className="bg-gradient-to-br from-fuchsia-500 via-pink-500 to-rose-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in animation-delay-600">
                   <h3 className="text-lg font-semibold text-white/90 mb-2">Total Earned</h3>
-                  <div className="text-4xl font-bold text-white">$8,932.15</div>
-                  <div className="text-sm text-white/80 mt-2">Since inception</div>
+                      <div className="text-4xl font-bold text-white">
+                        ${(earnings.lifetime.providerEarningsCents / 100).toFixed(2)}
                 </div>
+                      <div className="text-sm text-white/80 mt-2">
+                        Gross volume: ${(earnings.lifetime.grossRevenueCents / 100).toFixed(2)}
               </div>
+                    </div>
+                  </div>
+
+                  {/* Daily earnings trend */}
+                  <div className="bg-white/90 rounded-2xl p-6 border border-gray-200/60 shadow-inner mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Daily Earnings (This Month)</h3>
+                      <span className="text-xs text-gray-500">
+                        {earnings.daily.length} day{earnings.daily.length === 1 ? '' : 's'} with payouts
+                      </span>
+                    </div>
+                    {earnings.daily.length === 0 ? (
+                      <div className="text-sm text-gray-600">No captured payments yet this month.</div>
+                    ) : (
+                      <div className="space-y-2">
+                        {earnings.daily.map((d: any) => (
+                          <div
+                            key={d.day}
+                            className="flex items-center gap-3 text-sm text-gray-800"
+                          >
+                            <div className="w-32 text-gray-600">
+                              {new Date(d.day).toLocaleDateString()}
+                            </div>
+                            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                                style={{
+                                  width: `${Math.min(
+                                    100,
+                                    (d.providerEarningsCents /
+                                      Math.max(
+                                        1,
+                                        Math.max(
+                                          ...earnings.daily.map(
+                                            (x: any) => x.providerEarningsCents || 0
+                                          )
+                                        )
+                                      )) * 100
+                                  ).toFixed(1)}%`,
+                                }}
+                              />
+                            </div>
+                            <div className="w-24 text-right font-medium">
+                              ${(d.providerEarningsCents / 100).toFixed(2)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Summary stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-800">
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Paid Jobs
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {earnings.summary.paidJobs}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Jobs with captured payments this month
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Paid Orders
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {earnings.summary.paidOrders}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Some orders may contain multiple jobs
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Platform Take Rate
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {earnings.summary.grossRevenueCents > 0
+                          ? `${(
+                              (earnings.summary.platformFeesCents /
+                                earnings.summary.grossRevenueCents) *
+                              100
+                            ).toFixed(1)}%`
+                          : '—'}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Fees as a share of total customer spend this month
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
           {activeTab === 'reviews' && (
-            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Reviews & Ratings</h2>
-              <div className="text-center py-8 text-gray-900">Reviews functionality coming soon...</div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl animate-scale-in">
+              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 mb-6">
+                Reviews & Ratings
+              </h2>
+
+              {reviewsLoading && (
+                <div className="text-sm text-gray-600 mb-4">Loading reviews…</div>
+              )}
+              {reviewsError && (
+                <div className="text-sm text-red-600 mb-4">{reviewsError}</div>
+              )}
+
+              {reviewsSummary && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl p-6 shadow-xl text-white">
+                    <div className="text-sm font-semibold text-white/90 mb-1">
+                      Average Rating
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <div className="text-4xl font-bold">
+                        {reviewsSummary.avgRating.toFixed(2)}
+                      </div>
+                      <div className="text-lg">/ 5</div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1 text-sm">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <span
+                          key={idx}
+                          className={
+                            idx < Math.round(reviewsSummary.avgRating)
+                              ? 'text-yellow-300'
+                              : 'text-white/40'
+                          }
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 rounded-2xl p-6 shadow-xl text-white">
+                    <div className="text-sm font-semibold text-white/90 mb-1">
+                      Total Reviews
+                    </div>
+                    <div className="text-4xl font-bold">
+                      {reviewsSummary.reviewCount}
+                    </div>
+                    <div className="text-sm text-white/80 mt-2">
+                      Last review:{' '}
+                      {reviewsSummary.lastReviewAt
+                        ? new Date(reviewsSummary.lastReviewAt).toLocaleDateString()
+                        : '—'}
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {reviews.length === 0 && !reviewsLoading ? (
+                  <div className="text-sm text-gray-700">
+                    You don&apos;t have any reviews yet. Once consumers complete jobs and leave
+                    feedback, their comments will appear here.
+                  </div>
+                ) : (
+                  reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="border border-gray-200 rounded-2xl p-5 hover:border-violet-300 hover:shadow-md transition-all duration-300 bg-gradient-to-br from-white to-gray-50"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="font-semibold text-gray-900">
+                              {review.consumerDisplayName ||
+                                review.consumerEmail?.split('@')[0] ||
+                                'Customer'}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {review.consumerEmail}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm mb-2">
+                            {Array.from({ length: 5 }).map((_, idx) => (
+                              <span
+                                key={idx}
+                                className={
+                                  idx < review.rating ? 'text-yellow-400' : 'text-gray-300'
+                                }
+                              >
+                                ★
+                              </span>
+                            ))}
+                            <span className="ml-2 text-xs text-gray-600">
+                              {review.rating}/5
+                            </span>
+                          </div>
+                          {review.comment && (
+                            <div className="text-sm text-gray-800">
+                              {review.comment}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right text-xs text-gray-500 whitespace-nowrap">
+                          {review.createdAt
+                            ? new Date(review.createdAt).toLocaleString()
+                            : ''}
+                          <div className="mt-1">
+                            Order ID:{' '}
+                            <span className="font-mono text-[11px]">
+                              {review.orderId}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 

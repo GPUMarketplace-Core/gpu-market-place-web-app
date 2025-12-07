@@ -66,11 +66,12 @@ export class JobModel {
       }
 
       // Get hourly price from first GPU (assuming single GPU for now)
-      const hourlyPriceCents = nodeSpec.gpus[0].hourly_price_cents || 0;
+      // Default to $2/hour (200 cents) if not set
+      const hourlyPriceCents = nodeSpec.gpus[0].hourly_price_cents || 200;
 
-      // For MVP, we'll charge for 1 hour minimum
-      const subtotalCents = hourlyPriceCents;
-      const feesCents = Math.floor(subtotalCents * 0.10); // 10% platform fee
+      // Initially set order to $0 - will be calculated when job finishes
+      const subtotalCents = 0;
+      const feesCents = 0;
 
       // 2. Create order
       const orderResult = await client.query(
@@ -109,37 +110,140 @@ export class JobModel {
   }
 
   static async updateStatus(jobId: string, status: string, failureReason?: string): Promise<void> {
-    const now = new Date().toISOString();
-    let query = `UPDATE jobs SET status = $2`;
-    const params: any[] = [jobId, status];
-    let paramIdx = 3;
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    if (status === 'running') {
-      query += `, started_at = $${paramIdx++}`;
-      params.push(now);
-    } else if (['succeeded', 'failed', 'canceled'].includes(status)) {
-      query += `, finished_at = $${paramIdx++}`;
-      params.push(now);
+      const now = new Date().toISOString();
+      let query = `UPDATE jobs SET status = $2`;
+      const params: any[] = [jobId, status];
+      let paramIdx = 3;
+
+      if (status === 'running') {
+        query += `, started_at = $${paramIdx++}`;
+        params.push(now);
+      } else if (['succeeded', 'failed', 'canceled'].includes(status)) {
+        query += `, finished_at = $${paramIdx++}`;
+        params.push(now);
+      }
+
+      if (failureReason) {
+        query += `, failure_reason = $${paramIdx++}`;
+        params.push(failureReason);
+      }
+
+      query += ` WHERE id = $1`;
+      await client.query(query, params);
+
+      // If job succeeded, calculate and update order pricing
+      if (status === 'succeeded') {
+        await this.finalizeOrderPricing(jobId, client);
+      }
+
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
-
-    if (failureReason) {
-      query += `, failure_reason = $${paramIdx++}`;
-      params.push(failureReason);
-    }
-
-    query += ` WHERE id = $1`;
-    await pool.query(query, params);
   }
 
   static async complete(jobId: string, outputFilePath: string): Promise<void> {
-    const now = new Date().toISOString();
-    await pool.query(
-      `UPDATE jobs 
-       SET status = 'succeeded', 
-           finished_at = $2, 
-           artifacts_ref = $3 
-       WHERE id = $1`,
-      [jobId, now, outputFilePath]
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const now = new Date().toISOString();
+
+      // Update job status
+      await client.query(
+        `UPDATE jobs
+         SET status = 'succeeded',
+             finished_at = $2,
+             artifacts_ref = $3
+         WHERE id = $1`,
+        [jobId, now, outputFilePath]
+      );
+
+      // Calculate and update order pricing based on actual runtime
+      await this.finalizeOrderPricing(jobId, client);
+
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Calculate actual job cost and update order pricing
+   */
+  static async finalizeOrderPricing(jobId: string, client?: any): Promise<void> {
+    const shouldRelease = !client;
+    if (!client) {
+      client = await pool.connect();
+    }
+
+    try {
+      // Get job details
+      const jobResult = await client.query(
+        `SELECT node_id, order_id, started_at, finished_at FROM jobs WHERE id = $1`,
+        [jobId]
+      );
+
+      if (jobResult.rows.length === 0) {
+        throw new Error('Job not found');
+      }
+
+      const job = jobResult.rows[0];
+
+      if (!job.started_at || !job.finished_at || !job.order_id) {
+        throw new Error('Job missing required timing or order information');
+      }
+
+      // Calculate duration in hours
+      const startTime = new Date(job.started_at).getTime();
+      const endTime = new Date(job.finished_at).getTime();
+      const durationMs = endTime - startTime;
+      const durationHours = durationMs / (1000 * 60 * 60); // Convert to hours
+
+      // Get node pricing from MongoDB
+      const { db } = await connectToMongoDB();
+      const nodeSpec = await db.collection('node_specs').findOne({ node_id: job.node_id });
+
+      if (!nodeSpec || !nodeSpec.gpus || nodeSpec.gpus.length === 0) {
+        throw new Error('Node pricing not found');
+      }
+
+      // Get hourly price from first GPU (default to $2/hour if not set)
+      const hourlyPriceCents = nodeSpec.gpus[0].hourly_price_cents || 200;
+
+      // Calculate actual cost based on runtime
+      // Round up to nearest 0.01 hours (36 seconds) for billing
+      const billableHours = Math.ceil(durationHours * 100) / 100;
+      const subtotalCents = Math.round(hourlyPriceCents * billableHours);
+      const feesCents = Math.floor(subtotalCents * 0.10); // 10% platform fee
+      const totalCents = subtotalCents + feesCents;
+
+      // Update order with actual pricing
+      await client.query(
+        `UPDATE orders
+         SET subtotal_cents = $1,
+             fees_cents = $2,
+             total_cents = $3,
+             updated_at = NOW()
+         WHERE id = $4`,
+        [subtotalCents, feesCents, totalCents, job.order_id]
+      );
+
+      console.log(`Job ${jobId} finalized: ${billableHours.toFixed(2)}h @ $${(hourlyPriceCents/100).toFixed(2)}/h = $${(totalCents/100).toFixed(2)}`);
+    } finally {
+      if (shouldRelease) {
+        client.release();
+      }
+    }
   }
 }

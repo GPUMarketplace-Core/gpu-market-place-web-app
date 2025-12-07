@@ -1,4 +1,5 @@
 import pool from '../db/postgres';
+import { connectToMongoDB } from '../db/mongodb';
 
 export interface JobRow {
   id: string;
@@ -52,13 +53,51 @@ export class JobModel {
   }
 
   static async create(input: CreateJobInput): Promise<JobRow> {
-    const result = await pool.query(
-      `INSERT INTO jobs (consumer_id, provider_id, node_id, title, status, config_ref)
-       VALUES ($1, $2, $3, $4, 'queued', $5)
-       RETURNING *`,
-      [input.consumer_id, input.provider_id, input.node_id, input.title, input.input_file_path]
-    );
-    return result.rows[0];
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 1. Get node pricing from MongoDB
+      const { db } = await connectToMongoDB();
+      const nodeSpec = await db.collection('node_specs').findOne({ node_id: input.node_id });
+
+      if (!nodeSpec || !nodeSpec.gpus || nodeSpec.gpus.length === 0) {
+        throw new Error('Node pricing not found');
+      }
+
+      // Get hourly price from first GPU (assuming single GPU for now)
+      const hourlyPriceCents = nodeSpec.gpus[0].hourly_price_cents || 0;
+
+      // For MVP, we'll charge for 1 hour minimum
+      const subtotalCents = hourlyPriceCents;
+      const feesCents = Math.floor(subtotalCents * 0.10); // 10% platform fee
+
+      // 2. Create order
+      const orderResult = await client.query(
+        `INSERT INTO orders (consumer_id, provider_id, status, currency, subtotal_cents, fees_cents)
+         VALUES ($1, $2, 'pending', 'usd', $3, $4)
+         RETURNING id`,
+        [input.consumer_id, input.provider_id, subtotalCents, feesCents]
+      );
+
+      const orderId = orderResult.rows[0].id;
+
+      // 3. Create job with order_id
+      const jobResult = await client.query(
+        `INSERT INTO jobs (consumer_id, provider_id, node_id, order_id, title, status, config_ref)
+         VALUES ($1, $2, $3, $4, $5, 'queued', $6)
+         RETURNING *`,
+        [input.consumer_id, input.provider_id, input.node_id, orderId, input.title, input.input_file_path]
+      );
+
+      await client.query('COMMIT');
+      return jobResult.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   static async getById(jobId: string): Promise<JobRow | null> {

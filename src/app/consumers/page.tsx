@@ -146,7 +146,17 @@ export default function ConsumerDashboard() {
         setLoading(false);
       }
     }
+
+    // Initial fetch
     fetchProviders();
+
+    // Poll every 10 seconds for provider status updates
+    const intervalId = setInterval(() => {
+      fetchProviders();
+    }, 10000); // 10 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchJobs = async (showLoading = false) => {

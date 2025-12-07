@@ -69,7 +69,17 @@ export default function ProviderDashboard() {
         setNodesError(data.error || 'Failed to load nodes');
       }
     }
+
+    // Initial fetch
     fetchNodes();
+
+    // Poll every 10 seconds for node status updates
+    const intervalId = setInterval(() => {
+      fetchNodes();
+    }, 10000); // 10 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
   }, [accessToken, user?.role]);
 
   if (!accessToken) {

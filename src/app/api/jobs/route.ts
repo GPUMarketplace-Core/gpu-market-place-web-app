@@ -5,6 +5,12 @@ import { JobModel } from '@/lib/models/Job';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
+// Route Segment Config for App Router
+// Supports large .blend file uploads up to 500MB
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // Allow up to 5 minutes for large file upload processing
+
 async function getUser(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -41,6 +47,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Maximum file size: 500MB (in bytes)
+const MAX_FILE_SIZE = 500 * 1024 * 1024;
+
+// Allowed file extensions for job uploads
+const ALLOWED_EXTENSIONS = ['.blend', '.zip', '.tar', '.gz', '.py', '.json'];
+
 // POST /api/jobs - Create a new job
 export async function POST(request: NextRequest) {
   try {
@@ -60,6 +72,22 @@ export async function POST(request: NextRequest) {
 
     if (!file || !title || !providerId || !nodeId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Validate file size (500MB max)
+    if (file.size > MAX_FILE_SIZE) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      return NextResponse.json({ 
+        error: `File too large. Maximum size is 500MB, your file is ${fileSizeMB}MB` 
+      }, { status: 413 });
+    }
+
+    // Validate file extension
+    const fileExtension = path.extname(file.name).toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
+      return NextResponse.json({ 
+        error: `Invalid file type. Allowed types: ${ALLOWED_EXTENSIONS.join(', ')}` 
+      }, { status: 400 });
     }
 
     // Ensure uploads directory exists

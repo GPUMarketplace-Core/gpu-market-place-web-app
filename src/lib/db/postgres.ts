@@ -1,29 +1,35 @@
-import { Pool, Client } from 'pg';
+import pg from 'pg';
 
 const isRemote = !process.env.DATABASE_URL?.includes('localhost');
 
-const pool = new Pool({
+const getClientConfig = () => ({
   connectionString: process.env.DATABASE_URL,
   ssl: isRemote ? { rejectUnauthorized: false } : false,
-  max: 1,
-  idleTimeoutMillis: 10000,
   connectionTimeoutMillis: 15000,
 });
 
-// Test connection on first import (logs to Vercel)
-if (isRemote) {
-  const testClient = new Client({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-  testClient.connect()
-    .then(() => {
-      console.log('DB connected successfully');
-      testClient.end();
-    })
-    .catch((err) => {
-      console.error('DB connection test failed:', err.message);
-    });
-}
+// Wrapper that mimics pool.query() but uses a fresh Client per call.
+// This is the reliable pattern for PgBouncer transaction mode on serverless.
+const pool = {
+  async query(text: string | pg.QueryConfig, values?: any[]) {
+    const client = new pg.Client(getClientConfig());
+    try {
+      await client.connect();
+      const result = typeof text === 'string'
+        ? await client.query(text, values)
+        : await client.query(text);
+      return result;
+    } finally {
+      await client.end().catch(() => {});
+    }
+  },
+
+  async connect() {
+    const client = new pg.Client(getClientConfig());
+    await client.connect();
+    const release = () => client.end().catch(() => {});
+    return Object.assign(client, { release });
+  },
+};
 
 export default pool;

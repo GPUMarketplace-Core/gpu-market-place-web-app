@@ -47,6 +47,7 @@ export async function POST(
                 { error: 'Node exists but you do not own it' },
                 { status: 403 }
             );
+
         }
 
         // Validate status if provided

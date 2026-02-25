@@ -845,8 +845,9 @@ export default function ProviderDashboard() {
                       Transform your Windows machine into a GPU computing powerhouse. Start earning by sharing your GPU resources with the OpenGPU network.
                     </p>
                     <a
-                      href="/downloads/opengpu-provider-agent-setup.exe"
-                      download
+                      href="https://github.com/GPUMarketplace-Core/providers-agent/releases/latest/download/GPU.Marketplace.Provider.Setup.1.0.0.exe"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-3 px-8 py-4 bg-white text-violet-700 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
                     >
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -895,7 +896,7 @@ export default function ProviderDashboard() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        File: opengpu-provider-agent-setup.exe
+                        File: GPU.Marketplace.Provider.Setup.1.0.0.exe
                       </div>
                     </div>
                   </div>

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { useRouter } from 'next/navigation';
-import ThemeToggle from '../components/ThemeToggle';
+import Link from 'next/link';
 
 interface Provider {
   provider_id: string;
@@ -44,54 +44,62 @@ interface Job {
   failure_reason?: string;
 }
 
-// Helper function to format duration
 function formatDuration(startDate: string | undefined, endDate: string | undefined): string | null {
   if (!startDate || !endDate) return null;
-  
   const start = new Date(startDate).getTime();
   const end = new Date(endDate).getTime();
   const durationMs = end - start;
-  
   if (durationMs < 0) return null;
-  
   const seconds = Math.floor(durationMs / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  
-  if (days > 0) {
-    return `${days}d ${hours % 24}h ${minutes % 60}m`;
-  } else if (hours > 0) {
-    return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
-  } else if (minutes > 0) {
-    return `${minutes}m ${seconds % 60}s`;
-  } else {
-    return `${seconds}s`;
-  }
+  if (days > 0) return `${days}d ${hours % 24}h ${minutes % 60}m`;
+  if (hours > 0) return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+  if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+  return `${seconds}s`;
 }
 
-// Helper function to get elapsed time for running jobs
 function getElapsedTime(startDate: string | undefined): string | null {
   if (!startDate) return null;
-  
   const start = new Date(startDate).getTime();
   const now = Date.now();
   const durationMs = now - start;
-  
   if (durationMs < 0) return null;
-  
   const seconds = Math.floor(durationMs / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
-  
-  if (hours > 0) {
-    return `${hours}h ${minutes % 60}m`;
-  } else if (minutes > 0) {
-    return `${minutes}m ${seconds % 60}s`;
-  } else {
-    return `${seconds}s`;
-  }
+  if (hours > 0) return `${hours}h ${minutes % 60}m`;
+  if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+  return `${seconds}s`;
 }
+
+/* ─── Icons (matching landing page style) ─── */
+const icons = {
+  dashboard: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
+  search: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>,
+  briefcase: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><path d="M2 13h20"/></svg>,
+  settings: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
+  logout: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+  gpu: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><rect x="6.5" y="8" width="11" height="8" rx="1.5"/><line x1="9.5" y1="8" x2="9.5" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="14.5" y1="8" x2="14.5" y2="16"/></svg>,
+  zap: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,
+  clock: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  refresh: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>,
+  star: <svg width="12" height="12" viewBox="0 0 20 20" fill="#f59e0b"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>,
+  arrow: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3.5 8h9M8.5 4l4 4-4 4"/></svg>,
+  close: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  file: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+  user: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  globe: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10A15.3 15.3 0 0112 2z"/></svg>,
+  chart: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>,
+};
+
+const TAB_TITLES: Record<string, { title: string; subtitle: string }> = {
+  dashboard: { title: 'Dashboard', subtitle: 'Browse providers and manage your GPU compute jobs' },
+  marketplace: { title: 'Marketplace', subtitle: 'Find and rent GPU compute nodes from providers worldwide' },
+  jobs: { title: 'My Jobs', subtitle: 'Track and manage your submitted GPU compute jobs' },
+  settings: { title: 'Settings', subtitle: 'Manage your account preferences' },
+};
 
 export default function ConsumerDashboard() {
   const { user, accessToken, refreshUser, clear } = useAuth();
@@ -105,7 +113,6 @@ export default function ConsumerDashboard() {
   const [jobsError, setJobsError] = useState<string | null>(null);
   const [lastJobsUpdate, setLastJobsUpdate] = useState<Date | null>(null);
 
-  // Job Submission State
   const [showJobModal, setShowJobModal] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -115,20 +122,12 @@ export default function ConsumerDashboard() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (accessToken && !user) {
-      void refreshUser();
-    }
+    if (accessToken && !user) void refreshUser();
   }, [accessToken, user, refreshUser]);
 
   useEffect(() => {
-    if (!accessToken) {
-      router.push('/');
-      return;
-    }
-    if (user?.role === 'provider') {
-      router.push('/providers');
-      return;
-    }
+    if (!accessToken) { router.push('/'); return; }
+    if (user?.role === 'provider') { router.push('/providers'); return; }
   }, [accessToken, user, router]);
 
   useEffect(() => {
@@ -138,17 +137,10 @@ export default function ConsumerDashboard() {
         if (res.ok) {
           const data = await res.json();
           setProviders(data.providers || []);
-        } else {
-          setError('Failed to load providers');
-        }
-      } catch (err) {
-        setError('Failed to load providers');
-      } finally {
-        setLoading(false);
-      }
+        } else { setError('Failed to load providers'); }
+      } catch { setError('Failed to load providers'); }
+      finally { setLoading(false); }
     }
-
-    // Initial fetch
     fetchProviders();
 
     // Poll every 5 minutes for provider status updates
@@ -156,7 +148,6 @@ export default function ConsumerDashboard() {
       fetchProviders();
     }, 300000); // 5 minutes
 
-    // Cleanup interval on unmount
     return () => clearInterval(intervalId);
   }, []);
 
@@ -164,12 +155,9 @@ export default function ConsumerDashboard() {
     if (!accessToken) return;
     if (showLoading) setJobsLoading(true);
     try {
-      const res = await fetch('/api/jobs', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
+      const res = await fetch('/api/jobs', { headers: { Authorization: `Bearer ${accessToken}` } });
       if (res.ok) {
         const data = await res.json();
-        // Sort jobs by finished_at (if available) or submitted_at, most recent first
         const sortedJobs = (data.jobs || []).sort((a: Job, b: Job) => {
           const aDate = a.finished_at ? new Date(a.finished_at) : new Date(a.submitted_at);
           const bDate = b.finished_at ? new Date(b.finished_at) : new Date(b.submitted_at);
@@ -178,44 +166,32 @@ export default function ConsumerDashboard() {
         setJobs(sortedJobs);
         setLastJobsUpdate(new Date());
         setJobsError(null);
-      } else {
-        setJobsError('Failed to fetch jobs');
-      }
-    } catch (err) {
-      setJobsError('Failed to fetch jobs');
-    } finally {
-      setJobsLoading(false);
-    }
+      } else { setJobsError('Failed to fetch jobs'); }
+    } catch { setJobsError('Failed to fetch jobs'); }
+    finally { setJobsLoading(false); }
   };
 
   useEffect(() => {
-    if (activeTab === 'jobs' || activeTab === 'dashboard') {
-      fetchJobs(true);
-    }
+    if (activeTab === 'jobs' || activeTab === 'dashboard') fetchJobs(true);
   }, [activeTab, accessToken]);
 
-  // Auto-refresh jobs every 5 seconds when there are active jobs
   useEffect(() => {
     const hasActiveJobs = jobs.some(j => j.status === 'queued' || j.status === 'running');
-    
-    // Always poll if on jobs/dashboard tab, more frequently if there are active jobs
     if ((activeTab === 'jobs' || activeTab === 'dashboard') && accessToken) {
       const interval = setInterval(() => {
         fetchJobs();
       }, hasActiveJobs ? 30000 : 300000); // 30s if active jobs, 5 min otherwise
-      
+
       return () => clearInterval(interval);
     }
   }, [activeTab, accessToken, jobs]);
 
   const handleOpenJobModal = (provider: Provider, nodeId: string) => {
-    // Check if the node is still online
     const node = provider.nodes.find(n => n.node_id === nodeId);
     if (!node || node.status !== 'online') {
       alert('This node is no longer online. Please refresh the page or select a different node.');
       return;
     }
-
     setSelectedProvider(provider);
     setSelectedNodeId(nodeId);
     setJobTitle('');
@@ -227,25 +203,19 @@ export default function ConsumerDashboard() {
   const handleSubmitJob = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProvider || !selectedNodeId || !jobTitle || !jobFile || !accessToken) return;
-
     setSubmitting(true);
     setSubmitError(null);
-
     try {
       const formData = new FormData();
       formData.append('title', jobTitle);
       formData.append('provider_id', selectedProvider.provider_id);
       formData.append('node_id', selectedNodeId);
       formData.append('file', jobFile);
-
       const res = await fetch('/api/jobs', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
         body: formData,
       });
-
       if (res.ok) {
         setShowJobModal(false);
         setActiveTab('jobs');
@@ -254,11 +224,8 @@ export default function ConsumerDashboard() {
         const data = await res.json();
         setSubmitError(data.error || 'Failed to submit job');
       }
-    } catch (err: any) {
-      setSubmitError(err.message || 'Failed to submit job');
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (err: any) { setSubmitError(err.message || 'Failed to submit job'); }
+    finally { setSubmitting(false); }
   };
 
   const totalProviders = providers.length;
@@ -266,360 +233,310 @@ export default function ConsumerDashboard() {
   const runningJobs = jobs.filter(j => j.status === 'running').length;
   const completedJobs = jobs.filter(j => j.status === 'succeeded').length;
 
-  if (!accessToken) {
-    return <div className="p-6 text-sm">Please sign in.</div>;
-  }
+  if (!accessToken) return <div className="app-shell min-h-screen flex items-center justify-center text-[var(--lp-secondary)] text-sm">Please sign in.</div>;
+  if (!user) return <div className="app-shell min-h-screen flex items-center justify-center text-[var(--lp-secondary)] text-sm">Loading user&hellip;</div>;
+  if (user.role !== 'consumer') return <div className="app-shell min-h-screen flex items-center justify-center text-[var(--lp-secondary)] text-sm">Only consumers can access this page.</div>;
 
-  if (!user) {
-    return <div className="p-6 text-sm text-gray-900 dark:text-gray-100">Loading user…</div>;
-  }
+  const initials = (user.display_name || user.email || 'U').slice(0, 2).toUpperCase();
+  const tabInfo = TAB_TITLES[activeTab] || TAB_TITLES.dashboard;
 
-  if (user.role !== 'consumer') {
-    return <div className="p-6 text-sm">Only consumers can access this page.</div>;
-  }
+  const statusBadge = (status: string) => {
+    const map: Record<string, string> = {
+      succeeded: 'bg-emerald-50 text-emerald-700',
+      failed: 'bg-red-50 text-red-700',
+      running: 'bg-blue-50 text-blue-700',
+      queued: 'bg-amber-50 text-amber-700',
+      canceled: 'bg-gray-100 text-[var(--lp-dim)]',
+    };
+    return map[status] || 'bg-gray-100 text-[var(--lp-dim)]';
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-fuchsia-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex">
-      {/* Sidebar */}
-      <div className="w-64 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-xl border-r border-gray-200/50 dark:border-gray-700/50 animate-slide-in-right">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-8 group cursor-pointer">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
-              <span className="text-white font-bold text-[10px]">OG</span>
+    <div className="app-shell min-h-screen flex">
+      {/* ── Sidebar ── */}
+      <aside className="app-sidebar">
+        <div className="p-6 flex-1 flex flex-col">
+          <Link href="/" className="flex items-center gap-2.5 mb-10 group">
+            <div className="h-9 w-9 rounded-xl bg-[var(--lp-ink)] flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+              <span className="text-[10px] font-bold text-[var(--lp-bg)] font-serif">OG</span>
             </div>
-            <span className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600">OPENGPU</span>
-          </div>
-          
+            <span className="text-lg font-semibold tracking-tight">OpenGPU</span>
+          </Link>
+
+          <div className="section-label mb-3">Overview</div>
+          <nav className="space-y-1 mb-8">
+            {[
+              { key: 'dashboard', icon: icons.dashboard, label: 'Dashboard' },
+              { key: 'marketplace', icon: icons.search, label: 'Find Providers' },
+              { key: 'jobs', icon: icons.briefcase, label: 'My Jobs' },
+            ].map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setActiveTab(item.key)}
+                className={`sidebar-link ${activeTab === item.key ? 'active' : ''}`}
+              >
+                {item.icon}
+                {item.label}
+                {item.key === 'jobs' && runningJobs > 0 && (
+                  <span className="ml-auto flex items-center gap-1 text-[11px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" style={{ animation: 'lp-pulse-dot 2s infinite' }} />
+                    {runningJobs}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+
+          <div className="section-label mb-3">Account</div>
           <nav className="space-y-1">
-            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">OVERVIEW</div>
-            
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
-                activeTab === 'dashboard'
-                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-              </svg>
-              Dashboard
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('marketplace')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
-                activeTab === 'marketplace'
-                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              Find Providers
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('jobs')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
-                activeTab === 'jobs'
-                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 002 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2V8" />
-              </svg>
-              My Jobs
-            </button>
-            
-            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-8 mb-3">SETTINGS</div>
-            
             <button
               onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform ${
-                activeTab === 'settings'
-                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-102'
-              }`}
+              className={`sidebar-link ${activeTab === 'settings' ? 'active' : ''}`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
+              {icons.settings}
               Settings
             </button>
-            
-            <button
-              onClick={() => {
-                clear();
-                router.push('/');
-              }}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all duration-300 transform hover:scale-102"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
-            </button>
           </nav>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto relative">
-        {/* Header */}
-        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-6 py-5 shadow-sm">
-          <div className="flex items-center justify-between animate-fade-in">
-            <div>
-              <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300">Consumer Dashboard</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Browse providers and manage your GPU compute jobs</p>
-            </div>
-            <ThemeToggle />
+          <div className="mt-auto pt-6 border-t border-[var(--lp-border)]">
+            <button
+              onClick={() => { clear(); router.push('/'); }}
+              className="sidebar-link !text-red-500 hover:!bg-red-50"
+            >
+              {icons.logout}
+              Sign Out
+            </button>
           </div>
         </div>
+      </aside>
 
-        {/* Content Area */}
-        <div className="p-6">
+      {/* ── Main ── */}
+      <main className="flex-1 overflow-auto">
+        {/* Header */}
+        <header className="bg-white border-b border-[var(--lp-border)] px-8 h-[72px] flex items-center justify-between lp-fade">
+          <div>
+            <h1 className="font-serif text-[1.75rem] leading-tight">{tabInfo.title}</h1>
+            <p className="text-[13px] text-[var(--lp-secondary)] mt-0.5">{tabInfo.subtitle}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[13px] text-[var(--lp-dim)]">{user.email}</span>
+            <div className="w-8 h-8 rounded-full bg-[var(--lp-surface)] flex items-center justify-center text-[12px] font-semibold text-[var(--lp-secondary)]">
+              {initials}
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="p-8" key={activeTab}>
+
+          {/* ── Dashboard Tab ── */}
           {activeTab === 'dashboard' && (
-            <>
-              {/* Profile Card */}
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.01] animate-scale-in">
-                <div className="flex items-start gap-6">
-                  <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+            <div className="tab-content">
+              {/* Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                {[
+                  { label: 'Providers Online', value: totalProviders, sub: `${totalOnlineNodes} nodes available`, icon: icons.globe },
+                  { label: 'Active Jobs', value: runningJobs, sub: 'Currently running', icon: icons.zap },
+                  { label: 'Completed', value: completedJobs, sub: 'Successfully finished', icon: icons.chart },
+                  { label: 'Total Jobs', value: jobs.length, sub: 'All time submissions', icon: icons.briefcase },
+                ].map((stat, i) => (
+                  <div key={stat.label} className={`ip-stat p-6 lp-reveal lp-d${i + 1}`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-[11px] font-medium uppercase tracking-widest text-[var(--lp-dim)]">{stat.label}</div>
+                      <div className="w-9 h-9 rounded-xl bg-[var(--lp-surface)] flex items-center justify-center text-[var(--lp-dim)]">
+                        {stat.icon}
+                      </div>
+                    </div>
+                    <div className="font-serif text-[2rem] leading-none">{stat.value}</div>
+                    <div className="text-[12px] text-[var(--lp-dim)] mt-2">{stat.sub}</div>
                   </div>
-                  
+                ))}
+              </div>
+
+              {/* Profile Card */}
+              <div className="ip-card p-7 mb-6 lp-reveal lp-d5">
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 rounded-2xl bg-[var(--lp-surface)] flex items-center justify-center text-[var(--lp-secondary)]">
+                    {icons.user}
+                  </div>
                   <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    <h2 className="font-semibold text-[17px] mb-0.5">
                       {user?.display_name || user?.email?.split('@')[0] || 'Consumer'}
                     </h2>
-                    <div className="text-sm text-gray-600 mb-4">
-                      Active Jobs: <span className="text-blue-600 font-medium">{runningJobs}</span> | 
-                      Completed: <span className="text-green-600 font-medium ml-1">{completedJobs}</span>
-                    </div>
-                    <button 
-                      onClick={() => setActiveTab('marketplace')}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      Find a Provider
-                    </button>
+                    <p className="text-[13px] text-[var(--lp-dim)]">
+                      {runningJobs} active &middot; {completedJobs} completed &middot; {jobs.length} total jobs
+                    </p>
                   </div>
-                  
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Account Status</div>
-                    <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Active
-                    </div>
-                  </div>
+                  <button
+                    onClick={() => setActiveTab('marketplace')}
+                    className="btn-primary btn-sm"
+                  >
+                    Find a Provider {icons.arrow}
+                  </button>
                 </div>
               </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-2">Available Providers</h3>
-                  <div className="text-3xl font-bold text-blue-900">{totalProviders}</div>
-                  <div className="text-sm text-blue-600 mt-1">{totalOnlineNodes} nodes online</div>
-                </div>
-                <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-2">Total Jobs</h3>
-                  <div className="text-3xl font-bold text-purple-900">{jobs.length}</div>
-                  <div className="text-sm text-purple-600 mt-1">{runningJobs} currently running</div>
-                </div>
-              </div>
-
-              {/* Recent Jobs */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-4">
+              {/* Recent Completed Jobs */}
+              <div className="ip-card-static overflow-hidden lp-reveal lp-d6">
+                <div className="px-7 py-5 border-b border-[var(--lp-border)] flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Jobs</h3>
+                    <h3 className="font-semibold text-[16px]">Recent Jobs</h3>
                     {jobs.some(j => j.status === 'queued' || j.status === 'running') && (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
-                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-600 text-[11px] font-medium rounded-full">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" style={{ animation: 'lp-pulse-dot 2s infinite' }} />
                         Auto-updating
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     {lastJobsUpdate && (
-                      <span className="text-xs text-gray-400">
+                      <span className="text-[11px] text-[var(--lp-dim)]">
                         Updated {lastJobsUpdate.toLocaleTimeString()}
                       </span>
                     )}
-                    <button 
-                      onClick={() => fetchJobs(true)}
-                      className="text-sm text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition-colors"
-                      title="Refresh"
-                    >
-                      <svg className={`w-4 h-4 ${jobsLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
+                    <button onClick={() => fetchJobs(true)} className="text-[var(--lp-dim)] hover:text-[var(--lp-ink)] transition-colors" title="Refresh">
+                      <span className={jobsLoading ? 'animate-spin inline-block' : ''}>{icons.refresh}</span>
                     </button>
-                    <button 
-                      onClick={() => setActiveTab('jobs')}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                    >
+                    <button onClick={() => setActiveTab('jobs')} className="text-[13px] text-[var(--lp-accent)] font-medium hover:underline">
                       View All
                     </button>
                   </div>
                 </div>
-                
+
                 {jobs.length === 0 ? (
-                  <div className="text-center py-8 text-gray-900 dark:text-gray-100">
-                    <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <p>No jobs submitted yet</p>
-                    <p className="text-sm mt-1">Submit your first GPU compute job to get started</p>
+                  <div className="px-7 py-12 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--lp-surface)] flex items-center justify-center mx-auto mb-4 text-[var(--lp-dim)]">
+                      {icons.briefcase}
+                    </div>
+                    <p className="text-[var(--lp-secondary)] text-[15px] mb-1">No jobs submitted yet</p>
+                    <p className="text-[var(--lp-dim)] text-[13px]">Submit your first GPU compute job to get started</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {jobs.filter(job => job.status === 'succeeded').slice(0, 3).map((job) => (
-                      <div key={job.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100">
-                          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
+                  <div>
+                    {jobs.slice(0, 5).map((job) => (
+                      <div key={job.id} className="ip-row flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--lp-surface)] flex items-center justify-center text-[var(--lp-dim)]">
+                          {icons.file}
                         </div>
-                        
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100">{job.title}</h4>
-                          <div className="text-sm text-gray-600 flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-[14px] truncate">{job.title}</h4>
+                          <div className="flex items-center gap-3 text-[12px] text-[var(--lp-dim)]">
                             <span>{new Date(job.submitted_at).toLocaleDateString()}</span>
-                            {/* Show duration for completed/failed jobs */}
                             {(job.status === 'succeeded' || job.status === 'failed') && job.started_at && job.finished_at && (
-                              <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                              <span className="flex items-center gap-1">
+                                {icons.clock}
                                 {formatDuration(job.started_at, job.finished_at)}
                               </span>
                             )}
-                            {/* Show elapsed time for running jobs */}
                             {job.status === 'running' && job.started_at && (
-                              <span className="inline-flex items-center gap-1 text-xs text-blue-600">
-                                <svg className="w-3 h-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                              <span className="flex items-center gap-1 text-blue-600">
+                                {icons.clock}
                                 {getElapsedTime(job.started_at)} elapsed
                               </span>
                             )}
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-3">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            job.status === 'succeeded' ? 'bg-green-100 text-green-800' :
-                            job.status === 'failed' ? 'bg-red-100 text-red-800' :
-                            job.status === 'running' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {job.status === 'running' ? 'in-progress' : job.status}
-                          </span>
-
-                          {job.status === 'succeeded' && (
-                            <button
-                              onClick={() => router.push(`/billing/${job.id}`)}
-                              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-medium transition-colors"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                              View Results
-                            </button>
-                          )}
-                        </div>
+                        <span className={`ip-badge ${statusBadge(job.status)}`}>
+                          {job.status === 'running' ? 'in-progress' : job.status}
+                        </span>
+                        {job.status === 'succeeded' && (
+                          <button
+                            onClick={() => router.push(`/billing/${job.id}`)}
+                            className="btn-primary btn-sm"
+                          >
+                            View Results
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
 
+          {/* ── Marketplace Tab ── */}
           {activeTab === 'marketplace' && (
-            <div>
+            <div className="tab-content">
               {loading && (
-                <div className="text-center py-8 text-gray-900 dark:text-gray-100">Loading providers...</div>
+                <div className="text-center py-16 text-[var(--lp-secondary)]">Loading providers&hellip;</div>
               )}
-
               {error && (
-                <div className="text-center py-8 text-red-600">{error}</div>
+                <div className="text-center py-16 text-red-600">{error}</div>
               )}
-
               {!loading && !error && providers.length === 0 && (
-                <div className="text-center py-8 text-gray-900 dark:text-gray-100">No online providers found.</div>
+                <div className="text-center py-16">
+                  <div className="w-14 h-14 rounded-2xl bg-[var(--lp-surface)] flex items-center justify-center mx-auto mb-4 text-[var(--lp-dim)]">
+                    {icons.globe}
+                  </div>
+                  <p className="text-[var(--lp-secondary)]">No online providers found.</p>
+                  <p className="text-[var(--lp-dim)] text-[13px] mt-1">Check back soon &mdash; providers come online regularly.</p>
+                </div>
               )}
-
               {!loading && !error && providers.length > 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {providers.map((provider) => (
-                    <div key={provider.provider_id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:border-gray-300 transition-colors">
+                  {providers.map((provider, pi) => (
+                    <div key={provider.provider_id} className={`ip-card p-6 lp-reveal lp-d${Math.min(pi + 1, 8)}`}>
                       {/* Provider Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            {provider.provider_display_name || provider.provider_email.split('@')[0]}
-                          </h3>
-                          {provider.company_name && (
-                            <p className="text-sm text-gray-900 dark:text-gray-100">{provider.company_name}</p>
-                          )}
+                      <div className="flex items-start justify-between mb-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-11 h-11 rounded-xl bg-[var(--lp-surface)] flex items-center justify-center text-[var(--lp-dim)]">
+                            {icons.user}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-[15px]">
+                              {provider.provider_display_name || provider.provider_email.split('@')[0]}
+                            </h3>
+                            {provider.company_name && (
+                              <p className="text-[12px] text-[var(--lp-dim)]">{provider.company_name}</p>
+                            )}
+                          </div>
                         </div>
                         <div className="text-right">
-                          <div className="flex items-center gap-1 text-sm">
-                            <span className="text-yellow-400">★</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">{provider.rating.average.toFixed(1)}</span>
-                            <span className="text-gray-900 dark:text-gray-100">({provider.rating.count})</span>
+                          <div className="flex items-center gap-1 text-[13px]">
+                            {icons.star}
+                            <span className="font-medium">{provider.rating.average.toFixed(1)}</span>
+                            <span className="text-[var(--lp-dim)]">({provider.rating.count})</span>
                           </div>
-                          <div className="text-xs text-gray-900 dark:text-gray-100 mt-1">
-                            {provider.online_nodes_count} nodes online
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" style={{ animation: 'lp-pulse-dot 2s infinite' }} />
+                            <span className="text-[11px] text-emerald-600 font-medium">{provider.online_nodes_count} online</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* GPU Nodes */}
+                      {/* Nodes */}
                       <div className="space-y-3">
                         {provider.nodes.filter(node => node.status === 'online').map((node) => (
-                          <div key={node.node_id} className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-medium text-gray-900 dark:text-gray-100">{node.name || 'Unnamed Node'}</h4>
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <div key={node.node_id} className="border border-[var(--lp-border)] rounded-xl p-4 hover:border-[var(--lp-accent)] transition-colors">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[var(--lp-dim)]">{icons.gpu}</span>
+                                <h4 className="font-medium text-[14px]">{node.name || 'Unnamed Node'}</h4>
+                              </div>
+                              <span className="text-[11px] font-medium text-[var(--lp-dim)] bg-[var(--lp-surface)] px-2 py-0.5 rounded-full">
                                 {node.region}
                               </span>
                             </div>
-                            
+
                             {node.specs?.gpus && (
-                              <div className="space-y-2 mb-3">
+                              <div className="space-y-1.5 mb-4">
                                 {node.specs.gpus.map((gpu, index) => (
-                                  <div key={index} className="flex items-center justify-between text-sm">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium text-gray-900 dark:text-gray-100">{gpu.model}</span>
-                                      <span className="text-gray-900 dark:text-gray-100">({gpu.vram_gb}GB)</span>
-                                    </div>
-                                    <div className="font-semibold text-blue-600">
-                                      ${(gpu.hourly_price_cents / 100).toFixed(2)}/hr
-                                    </div>
+                                  <div key={index} className="flex items-center justify-between text-[13px]">
+                                    <span className="text-[var(--lp-secondary)]">{gpu.model} &middot; {gpu.vram_gb}GB</span>
+                                    <span className="font-semibold text-[var(--lp-accent)]">
+                                      ${(gpu.hourly_price_cents / 100).toFixed(2)}<span className="text-[var(--lp-dim)] font-normal">/hr</span>
+                                    </span>
                                   </div>
                                 ))}
                               </div>
                             )}
-                            
+
                             <button
                               onClick={() => handleOpenJobModal(provider, node.node_id)}
-                              className="w-full py-2 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                              className="w-full py-2.5 bg-[var(--lp-ink)] text-white text-[13px] font-medium rounded-xl hover:bg-[var(--lp-ink)]/90 transition-colors flex items-center justify-center gap-2"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                              </svg>
+                              {icons.zap}
                               Rent Node & Submit Job
                             </button>
                           </div>
@@ -632,196 +549,172 @@ export default function ConsumerDashboard() {
             </div>
           )}
 
+          {/* ── Jobs Tab ── */}
           {activeTab === 'jobs' && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">My Jobs</h2>
-                  {jobs.some(j => j.status === 'queued' || j.status === 'running') && (
-                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
-                      Auto-updating every 3s
-                    </span>
-                  )}
+            <div className="tab-content">
+              <div className="ip-card-static overflow-hidden">
+                <div className="px-7 py-5 border-b border-[var(--lp-border)] flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <h2 className="font-semibold text-[16px]">All Jobs</h2>
+                    {jobs.some(j => j.status === 'queued' || j.status === 'running') && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-600 text-[11px] font-medium rounded-full">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" style={{ animation: 'lp-pulse-dot 2s infinite' }} />
+                        Auto-updating every 3s
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {lastJobsUpdate && (
+                      <span className="text-[11px] text-[var(--lp-dim)]">
+                        Last updated: {lastJobsUpdate.toLocaleTimeString()}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => fetchJobs(true)}
+                      disabled={jobsLoading}
+                      className="btn-secondary btn-sm disabled:opacity-50"
+                    >
+                      <span className={jobsLoading ? 'animate-spin inline-block' : ''}>{icons.refresh}</span>
+                      Refresh
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  {lastJobsUpdate && (
-                    <span className="text-xs text-gray-400">
-                      Last updated: {lastJobsUpdate.toLocaleTimeString()}
-                    </span>
-                  )}
-                  <button 
-                    onClick={() => fetchJobs(true)}
-                    disabled={jobsLoading}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-100 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                  >
-                    <svg className={`w-4 h-4 ${jobsLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Refresh
-                  </button>
-                </div>
-              </div>
-              {jobsError && <div className="text-sm text-red-600 mb-4">{jobsError}</div>}
 
-              {jobs.length === 0 && !jobsLoading ? (
-                <div className="text-center py-8 text-gray-900 dark:text-gray-100">No jobs submitted yet.</div>
-              ) : (
-                <div className="space-y-4">
-                  {jobs.map((job) => (
-                    <div key={job.id} className="border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">{job.title}</h4>
-                          <div className="text-sm text-gray-600 mb-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-                            <span>Submitted: {new Date(job.submitted_at).toLocaleString()}</span>
-                            {job.started_at && (
-                              <span>Started: {new Date(job.started_at).toLocaleString()}</span>
+                {jobsError && <div className="px-7 py-3 text-sm text-red-600 bg-red-50 border-b border-red-100">{jobsError}</div>}
+
+                {jobs.length === 0 && !jobsLoading ? (
+                  <div className="px-7 py-16 text-center text-[var(--lp-secondary)]">No jobs submitted yet.</div>
+                ) : (
+                  <div>
+                    {jobs.map((job) => (
+                      <div key={job.id} className="ip-row">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-[14px] mb-1">{job.title}</h4>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[var(--lp-dim)]">
+                              <span>Submitted: {new Date(job.submitted_at).toLocaleString()}</span>
+                              {job.started_at && <span>Started: {new Date(job.started_at).toLocaleString()}</span>}
+                              {job.finished_at && <span>Finished: {new Date(job.finished_at).toLocaleString()}</span>}
+                            </div>
+
+                            {(job.status === 'succeeded' || job.status === 'failed') && job.started_at && job.finished_at && (
+                              <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 bg-[var(--lp-surface)] text-[var(--lp-secondary)] text-[11px] rounded-lg">
+                                {icons.clock}
+                                Duration: <strong>{formatDuration(job.started_at, job.finished_at)}</strong>
+                              </div>
                             )}
-                            {job.finished_at && (
-                              <span>Finished: {new Date(job.finished_at).toLocaleString()}</span>
+
+                            {job.status === 'running' && job.started_at && (
+                              <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 bg-blue-50 text-blue-700 text-[11px] rounded-lg">
+                                {icons.clock}
+                                Elapsed: <strong>{getElapsedTime(job.started_at)}</strong>
+                              </div>
+                            )}
+
+                            {job.failure_reason && (
+                              <div className="text-[12px] text-red-600 mt-1">Error: {job.failure_reason}</div>
                             )}
                           </div>
-                          
-                          {/* Duration display */}
-                          {(job.status === 'succeeded' || job.status === 'failed') && job.started_at && job.finished_at && (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-lg mb-2">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span>Duration: <strong>{formatDuration(job.started_at, job.finished_at)}</strong></span>
-                            </div>
-                          )}
-                          
-                          {/* Elapsed time for running jobs */}
-                          {job.status === 'running' && job.started_at && (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-lg mb-2">
-                              <svg className="w-3.5 h-3.5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span>Elapsed: <strong>{getElapsedTime(job.started_at)}</strong></span>
-                            </div>
-                          )}
-                          
-                          {job.failure_reason && (
-                            <div className="text-sm text-red-600">Error: {job.failure_reason}</div>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 ml-4">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            job.status === 'succeeded' ? 'bg-green-100 text-green-800' :
-                            job.status === 'failed' ? 'bg-red-100 text-red-800' :
-                            job.status === 'running' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {job.status === 'running' ? 'in-progress' : job.status}
-                          </span>
-                          
-                          {job.status === 'succeeded' && (
-                            <button
-                              onClick={() => router.push(`/billing/${job.id}`)}
-                              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-medium transition-colors"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                              View Results
-                            </button>
-                          )}
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className={`ip-badge ${statusBadge(job.status)}`}>
+                              {job.status === 'running' ? 'in-progress' : job.status}
+                            </span>
+                            {job.status === 'succeeded' && (
+                              <button
+                                onClick={() => router.push(`/billing/${job.id}`)}
+                                className="btn-primary btn-sm"
+                              >
+                                View Results
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
+          {/* ── Settings Tab ── */}
           {activeTab === 'settings' && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Account Settings</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                  <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">{user.email}</div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display Name</label>
-                  <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">{user.display_name || '-'}</div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-                  <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-3 capitalize">{user.role}</div>
+            <div className="tab-content">
+              <div className="ip-card-static p-8">
+                <h2 className="font-semibold text-[17px] mb-6">Account Information</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    { label: 'Email', value: user.email },
+                    { label: 'Display Name', value: user.display_name || '-' },
+                    { label: 'Role', value: user.role, capitalize: true },
+                  ].map((field) => (
+                    <div key={field.label}>
+                      <label className="block text-[12px] font-medium text-[var(--lp-dim)] uppercase tracking-wider mb-1.5">{field.label}</label>
+                      <div className={`text-[14px] bg-[var(--lp-surface)] rounded-xl p-3.5 ${field.capitalize ? 'capitalize' : ''}`}>
+                        {field.value}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           )}
         </div>
+      </main>
 
-        {/* Job Submission Modal */}
-        {showJobModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md m-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Submit Job</h3>
-                <button onClick={() => setShowJobModal(false)} className="text-gray-400 hover:text-gray-600">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+      {/* ── Job Submission Modal ── */}
+      {showJobModal && (
+        <div className="ip-modal-overlay">
+          <div className="ip-modal p-8 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-serif text-[1.4rem]">Submit Job</h3>
+              <button onClick={() => setShowJobModal(false)} className="text-[var(--lp-dim)] hover:text-[var(--lp-ink)] transition-colors">
+                {icons.close}
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitJob} className="space-y-5">
+              <div>
+                <label className="block text-[13px] font-medium text-[var(--lp-secondary)] mb-1.5">Job Title</label>
+                <input
+                  type="text"
+                  required
+                  value={jobTitle}
+                  onChange={(e) => setJobTitle(e.target.value)}
+                  className="w-full border border-[var(--lp-border)] rounded-xl px-4 py-2.5 text-[14px] focus:ring-2 focus:ring-[var(--lp-accent)] focus:border-transparent outline-none transition-shadow"
+                  placeholder="e.g. Render Scene 1"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-medium text-[var(--lp-secondary)] mb-1.5">Blend File</label>
+                <input
+                  type="file"
+                  required
+                  onChange={(e) => setJobFile(e.target.files?.[0] || null)}
+                  className="w-full text-[13px] text-[var(--lp-dim)] file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:text-[13px] file:font-medium file:bg-[var(--lp-surface)] file:text-[var(--lp-secondary)] hover:file:bg-[var(--lp-border)] file:transition-colors file:cursor-pointer"
+                  accept=".blend,.zip"
+                />
+                <p className="text-[11px] text-[var(--lp-dim)] mt-1.5">Supported formats: .blend, .zip &middot; Max 500 MB</p>
+              </div>
+
+              {submitError && (
+                <div className="text-[13px] text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl">{submitError}</div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowJobModal(false)} className="btn-secondary flex-1 justify-center">
+                  Cancel
+                </button>
+                <button type="submit" disabled={submitting} className="btn-primary flex-1 justify-center">
+                  {submitting ? 'Submitting...' : 'Submit Job'}
                 </button>
               </div>
-              
-              <form onSubmit={handleSubmitJob} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="e.g. Render Scene 1"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Blend File</label>
-                  <input
-                    type="file"
-                    required
-                    onChange={(e) => setJobFile(e.target.files?.[0] || null)}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    accept=".blend,.zip"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Supported formats: .blend</p>
-                </div>
-
-                {submitError && (
-                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{submitError}</div>
-                )}
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowJobModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {submitting ? 'Submitting...' : 'Submit Job'}
-                  </button>
-                </div>
-              </form>
-            </div>
+            </form>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

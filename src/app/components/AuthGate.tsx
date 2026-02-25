@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import GoogleSignInButton from './GoogleSignInButton';
 import { useAuth } from '../providers/AuthProvider';
 import { me, signup } from '../lib/authClient';
@@ -27,7 +28,6 @@ export default function AuthGate() {
     try {
       const res = await me(token);
       if (res.status === 404) {
-        // Not signed up yet; keep token and show signup inputs
         setAuthState({ provider: 'google', accessToken: token, user: null });
       } else if (res.ok) {
         const data = await res.json();
@@ -54,7 +54,6 @@ export default function AuthGate() {
       const res = await signup(accessToken, roleChoice, displayName || undefined, roleChoice === 'provider' ? companyName || undefined : undefined);
       if (!res.ok) {
         if (res.status === 409) {
-          // Already registered: fetch user and redirect if provider
           const meRes = await me(accessToken);
           if (meRes.ok) {
             const data = await meRes.json();
@@ -86,7 +85,6 @@ export default function AuthGate() {
     }
   }, [accessToken, companyName, displayName, roleChoice, setAuthState, router]);
 
-  // Auto-redirect when user is authenticated (on page reload)
   useEffect(() => {
     if (user) {
       if (user.role === 'provider') {
@@ -97,7 +95,6 @@ export default function AuthGate() {
     }
   }, [user, router]);
 
-  // Fetch user data on mount if we have a token but no user
   useEffect(() => {
     if (accessToken && !user) {
       refreshUser(accessToken);
@@ -105,169 +102,182 @@ export default function AuthGate() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="relative flex w-full h-screen bg-gradient-to-br from-violet-50 via-fuchsia-50 to-pink-50 overflow-hidden">
-      {/* Animated background blobs */}
-      <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-to-r from-violet-400 to-purple-300 rounded-full mix-blend-normal filter blur-3xl opacity-30 animate-blob"></div>
-      <div className="absolute top-0 -right-4 w-96 h-96 bg-gradient-to-r from-fuchsia-400 to-pink-300 rounded-full mix-blend-normal filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-r from-cyan-400 to-blue-300 rounded-full mix-blend-normal filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
-
-      {/* Left: Background image in rounded container with white margins */}
-      <div className="hidden md:flex w-3/5 h-full items-center justify-center relative z-10">
-        <div className="relative w-[90%] h-[92%] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-700 hover:scale-[1.02]">
-          <div className="absolute inset-0" style={{ backgroundImage: 'url(/signup_background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-900/40 via-fuchsia-900/30 to-pink-900/40"></div>
-
-          {/* Top title with animation */}
-          <div className="absolute left-12 top-20 text-white animate-fade-in-up">
-            <div className="font-bold text-4xl md:text-5xl mb-3">
-              Welcome to OpenGPU
-            </div>
-            <div className="text-base tracking-wide text-violet-100">Rent Powerful GPU by the Hour</div>
-          </div>
-
-          {/* Bottom section with animation */}
-          <div className="absolute left-12 bottom-24 text-white max-w-xl animate-fade-in-up animation-delay-300">
-            <div className="font-bold text-3xl md:text-4xl mb-4">On-Demand GPU Power</div>
-            <p className="text-base leading-7 text-violet-50">
-              Run AI, rendering, and research works on community GPUs - fast, secure, and affordable
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Right: Auth area */}
-      <div className="relative flex-1 h-full z-10 flex items-center justify-center">
-        <div className={`w-[360px] md:w-[420px] animate-fade-in transition-all duration-500 ${accessToken && !isAuthed && authMode === 'signup' ? 'mt-8' : ''}`}>
-          {/* Brand */}
-          <div className="mb-6 flex items-center gap-2 group cursor-pointer">
-            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 text-white flex items-center justify-center text-[10px] font-bold shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        backgroundColor: '#faf9f7',
+        fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
+        color: '#141420',
+      }}
+    >
+      {/* ── Nav ── */}
+      <nav className="max-w-[1240px] w-full mx-auto px-6 lg:px-10 flex items-center justify-between h-[72px]">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="h-9 w-9 rounded-xl bg-[#141420] flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+            <span className="text-[10px] font-bold text-[#faf9f7]" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
               OG
-            </div>
-            <div className="text-[22px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600">
-              OpenGPU
-            </div>
+            </span>
           </div>
+          <span className="text-lg font-semibold tracking-tight">OpenGPU</span>
+        </Link>
 
-          {/* Tabs */}
-          <div className="mb-8">
-            <div className="inline-flex items-center rounded-2xl border border-gray-200 bg-white/60 backdrop-blur-sm p-1.5 shadow-sm">
-              <button
-                onClick={() => setAuthMode('signup')}
-                className={`px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ${
-                  authMode === 'signup'
-                    ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Sign Up
-              </button>
-              <button
-                onClick={() => setAuthMode('login')}
-                className={`px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ${
-                  authMode === 'login'
-                    ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Log In
-              </button>
-            </div>
-          </div>
+        <Link
+          href="/"
+          className="text-[14px] text-[#55556a] hover:text-[#141420] transition-colors"
+        >
+          &larr; Back to home
+        </Link>
+      </nav>
 
-          {/* Instructions */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+      {/* ── Main content ── */}
+      <div className="flex-1 flex items-center justify-center px-6 pb-16">
+        <div className="w-full max-w-[440px]">
+
+          {/* Header */}
+          <div className="text-center mb-10" style={{ animation: 'lp-reveal 0.6s cubic-bezier(0.22,1,0.36,1) both' }}>
+            <h1
+              className="text-[clamp(1.8rem,4vw,2.4rem)] leading-[1.1] tracking-[-0.02em] mb-3"
+              style={{ fontFamily: 'var(--font-instrument-serif), Georgia, serif' }}
+            >
               {authMode === 'signup' ? 'Create your account' : 'Welcome back'}
-            </h2>
-            <p className="text-sm text-gray-600">
+            </h1>
+            <p className="text-[15px] text-[#55556a]">
               {authMode === 'signup'
-                ? 'Sign up with Google to get started'
-                : 'Log in with your Google account'}
+                ? 'Get started with GPU compute in seconds'
+                : 'Sign in to your OpenGPU account'}
             </p>
           </div>
 
-          {/* Google button */}
-          <div className="mb-8">
+          {/* Auth mode tabs */}
+          <div
+            className="flex items-center rounded-xl bg-[#f0eee9] p-1 mb-8"
+            style={{ animation: 'lp-reveal 0.6s cubic-bezier(0.22,1,0.36,1) 0.08s both' }}
+          >
+            <button
+              onClick={() => setAuthMode('signup')}
+              className={`flex-1 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200 ${
+                authMode === 'signup'
+                  ? 'bg-white text-[#141420] shadow-sm'
+                  : 'text-[#8c8c9e] hover:text-[#55556a]'
+              }`}
+            >
+              Sign Up
+            </button>
+            <button
+              onClick={() => setAuthMode('login')}
+              className={`flex-1 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200 ${
+                authMode === 'login'
+                  ? 'bg-white text-[#141420] shadow-sm'
+                  : 'text-[#8c8c9e] hover:text-[#55556a]'
+              }`}
+            >
+              Sign In
+            </button>
+          </div>
+
+          {/* Google OAuth button */}
+          <div style={{ animation: 'lp-reveal 0.6s cubic-bezier(0.22,1,0.36,1) 0.16s both' }}>
             <GoogleSignInButton onToken={handleToken} />
           </div>
 
-          {/* Signup form after token, if needed */}
+          {/* Signup completion form */}
           {accessToken && !isAuthed && authMode === 'signup' && (
-            <div className="bg-white/80 backdrop-blur-md border border-indigo-200 rounded-2xl p-6 shadow-xl animate-slide-in-up">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="p-2 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg">
-                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div
+              className="mt-8 bg-white border border-[#e5e2dc] rounded-2xl p-7"
+              style={{ animation: 'lp-reveal 0.5s cubic-bezier(0.22,1,0.36,1) both' }}
+            >
+              <div className="flex items-center gap-2.5 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-[#f0eee9] flex items-center justify-center">
+                  <svg className="w-4 h-4 text-[#55556a]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <div className="text-base font-semibold text-gray-900">
-                  Complete Your Profile
+                <div>
+                  <div className="text-[15px] font-semibold">Complete your profile</div>
+                  <div className="text-[12px] text-[#8c8c9e]">Choose your role to get started</div>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {/* Role Selection */}
+              <div className="space-y-5">
+                {/* Role selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-[13px] font-medium text-[#55556a] mb-2.5">
                     I want to
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => setRoleChoice('consumer')}
-                      className={`p-5 rounded-2xl border-2 transition-all duration-300 transform ${
+                      className={`relative p-5 rounded-xl border-2 transition-all duration-200 ${
                         roleChoice === 'consumer'
-                          ? 'border-violet-500 bg-gradient-to-br from-violet-50 to-fuchsia-50 shadow-lg scale-105'
-                          : 'border-gray-200 bg-white hover:border-violet-200 hover:shadow-md hover:scale-102'
+                          ? 'border-[#4f46e5] bg-[#f5f3ff]'
+                          : 'border-[#e5e2dc] bg-white hover:border-[#d0cdc6]'
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-3">
-                        <div className={`p-3 rounded-xl transition-all duration-300 ${
-                          roleChoice === 'consumer'
-                            ? 'bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 shadow-lg'
-                            : 'bg-gray-100'
+                      <div className="flex flex-col items-center gap-2.5">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-200 ${
+                          roleChoice === 'consumer' ? 'bg-[#4f46e5]' : 'bg-[#f0eee9]'
                         }`}>
-                          <svg className={`w-6 h-6 ${roleChoice === 'consumer' ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                          <svg className={`w-5 h-5 ${roleChoice === 'consumer' ? 'text-white' : 'text-[#8c8c9e]'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5-4.5L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
                           </svg>
                         </div>
-                        <span className={`text-sm font-semibold transition-colors ${roleChoice === 'consumer' ? 'text-violet-900' : 'text-gray-700'}`}>
-                          Rent GPUs
-                        </span>
+                        <div>
+                          <div className={`text-[13px] font-semibold ${roleChoice === 'consumer' ? 'text-[#4f46e5]' : 'text-[#141420]'}`}>
+                            Rent GPUs
+                          </div>
+                          <div className="text-[11px] text-[#8c8c9e] mt-0.5">Submit compute jobs</div>
+                        </div>
                       </div>
+                      {roleChoice === 'consumer' && (
+                        <div className="absolute top-2.5 right-2.5">
+                          <svg className="w-4 h-4 text-[#4f46e5]" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
                     </button>
+
                     <button
                       onClick={() => setRoleChoice('provider')}
-                      className={`p-5 rounded-2xl border-2 transition-all duration-300 transform ${
+                      className={`relative p-5 rounded-xl border-2 transition-all duration-200 ${
                         roleChoice === 'provider'
-                          ? 'border-violet-500 bg-gradient-to-br from-violet-50 to-fuchsia-50 shadow-lg scale-105'
-                          : 'border-gray-200 bg-white hover:border-violet-200 hover:shadow-md hover:scale-102'
+                          ? 'border-[#4f46e5] bg-[#f5f3ff]'
+                          : 'border-[#e5e2dc] bg-white hover:border-[#d0cdc6]'
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-3">
-                        <div className={`p-3 rounded-xl transition-all duration-300 ${
-                          roleChoice === 'provider'
-                            ? 'bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 shadow-lg'
-                            : 'bg-gray-100'
+                      <div className="flex flex-col items-center gap-2.5">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-200 ${
+                          roleChoice === 'provider' ? 'bg-[#4f46e5]' : 'bg-[#f0eee9]'
                         }`}>
-                          <svg className={`w-6 h-6 ${roleChoice === 'provider' ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                          <svg className={`w-5 h-5 ${roleChoice === 'provider' ? 'text-white' : 'text-[#8c8c9e]'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                           </svg>
                         </div>
-                        <span className={`text-sm font-semibold transition-colors ${roleChoice === 'provider' ? 'text-violet-900' : 'text-gray-700'}`}>
-                          Provide GPUs
-                        </span>
+                        <div>
+                          <div className={`text-[13px] font-semibold ${roleChoice === 'provider' ? 'text-[#4f46e5]' : 'text-[#141420]'}`}>
+                            Provide GPUs
+                          </div>
+                          <div className="text-[11px] text-[#8c8c9e] mt-0.5">Monetize hardware</div>
+                        </div>
                       </div>
+                      {roleChoice === 'provider' && (
+                        <div className="absolute top-2.5 right-2.5">
+                          <svg className="w-4 h-4 text-[#4f46e5]" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
                     </button>
                   </div>
                 </div>
 
                 {/* Display Name */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label className="block text-[13px] font-medium text-[#55556a] mb-2">
                     Display Name
                   </label>
                   <input
-                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all bg-white"
+                    className="w-full px-4 py-3 text-[14px] border border-[#e5e2dc] rounded-xl focus:ring-2 focus:ring-[#4f46e5]/20 focus:border-[#4f46e5] outline-none transition-all bg-white placeholder:text-[#c0bfca]"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Enter your name"
@@ -276,12 +286,12 @@ export default function AuthGate() {
 
                 {/* Company Name (Provider only) */}
                 {roleChoice === 'provider' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Company Name <span className="text-gray-500 font-normal">(optional)</span>
+                  <div style={{ animation: 'lp-reveal 0.4s cubic-bezier(0.22,1,0.36,1) both' }}>
+                    <label className="block text-[13px] font-medium text-[#55556a] mb-2">
+                      Company Name <span className="text-[#8c8c9e] font-normal">(optional)</span>
                     </label>
                     <input
-                      className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all bg-white"
+                      className="w-full px-4 py-3 text-[14px] border border-[#e5e2dc] rounded-xl focus:ring-2 focus:ring-[#4f46e5]/20 focus:border-[#4f46e5] outline-none transition-all bg-white placeholder:text-[#c0bfca]"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Your company name"
@@ -289,11 +299,11 @@ export default function AuthGate() {
                   </div>
                 )}
 
-                {/* Submit Button */}
+                {/* Submit */}
                 <button
                   disabled={busy}
                   onClick={doSignup}
-                  className="w-full mt-2 rounded-xl px-4 py-4 text-sm font-semibold bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full py-3.5 text-[14px] font-medium text-white bg-[#4f46e5] rounded-xl hover:bg-[#4338ca] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.99]"
                 >
                   {busy ? (
                     <span className="flex items-center justify-center gap-2">
@@ -308,45 +318,83 @@ export default function AuthGate() {
                   )}
                 </button>
 
+                {/* Error */}
                 {error && (
-                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
-                    <svg className="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <div className="flex items-center gap-2.5 p-3.5 bg-red-50 border border-red-200 rounded-xl">
+                    <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <div className="text-sm text-red-800">{error}</div>
+                    <span className="text-[13px] text-red-700">{error}</span>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* Signed in */}
+          {/* Already signed in */}
           {isAuthed && (
-            <div className="flex flex-col gap-3">
-              <div className="text-sm">Signed in as <span className="font-medium">{user?.email}</span> ({user?.role})</div>
-              <div className="flex gap-2">
-                <button className="rounded border px-3 py-2 text-sm" onClick={clear}>Logout</button>
+            <div
+              className="mt-8 bg-white border border-[#e5e2dc] rounded-2xl p-7 text-center"
+              style={{ animation: 'lp-reveal 0.5s cubic-bezier(0.22,1,0.36,1) both' }}
+            >
+              <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="text-[15px] font-medium mb-1">Signed in as {user?.email}</div>
+              <div className="text-[13px] text-[#8c8c9e] mb-6 capitalize">{user?.role} account</div>
+              <div className="flex gap-3 justify-center">
+                <button
+                  className="px-5 py-2.5 text-[13px] font-medium border border-[#e5e2dc] rounded-xl hover:bg-[#f0eee9] transition-colors"
+                  onClick={clear}
+                >
+                  Sign Out
+                </button>
                 {user?.role === 'provider' && (
-                  <button className="rounded border px-3 py-2 text-sm" onClick={() => router.push('/providers')}>Go to profile</button>
+                  <button
+                    className="px-5 py-2.5 text-[13px] font-medium text-white bg-[#4f46e5] rounded-xl hover:bg-[#4338ca] transition-colors"
+                    onClick={() => router.push('/providers')}
+                  >
+                    Go to Dashboard
+                  </button>
                 )}
                 {user?.role === 'consumer' && (
-                  <button className="rounded border px-3 py-2 text-sm" onClick={() => router.push('/consumers')}>Dashboard</button>
+                  <button
+                    className="px-5 py-2.5 text-[13px] font-medium text-white bg-[#4f46e5] rounded-xl hover:bg-[#4338ca] transition-colors"
+                    onClick={() => router.push('/consumers')}
+                  >
+                    Go to Dashboard
+                  </button>
                 )}
               </div>
             </div>
           )}
-        </div>
 
-        {/* Legal text bottom-right */}
-        <div className="absolute bottom-6 right-6 text-[11px] text-gray-400 text-right">
-          By signing up to create an account I accept Company's
-          <div>
-            <a className="underline" href="#">Terms of use</a> & <a className="underline" href="#">Privacy Policy</a>.
+          {/* Divider + legal */}
+          <div className="mt-8 text-center" style={{ animation: 'lp-reveal 0.6s cubic-bezier(0.22,1,0.36,1) 0.28s both' }}>
+            <div className="h-px bg-[#e5e2dc] mb-6" />
+            <p className="text-[12px] text-[#8c8c9e] leading-relaxed">
+              By signing up you agree to our{' '}
+              <a href="#" className="text-[#55556a] underline underline-offset-2 hover:text-[#141420] transition-colors">Terms of Service</a>
+              {' '}and{' '}
+              <a href="#" className="text-[#55556a] underline underline-offset-2 hover:text-[#141420] transition-colors">Privacy Policy</a>.
+            </p>
           </div>
         </div>
       </div>
+
+      {/* ── Footer ── */}
+      <footer className="max-w-[1240px] w-full mx-auto px-6 lg:px-10 border-t border-[#e5e2dc]">
+        <div className="flex items-center justify-between py-6">
+          <span className="text-[12px] text-[#8c8c9e]">&copy; {new Date().getFullYear()} OpenGPU</span>
+          <div className="flex items-center gap-6 text-[12px] text-[#8c8c9e]">
+            <a href="#" className="hover:text-[#141420] transition-colors">Terms</a>
+            <a href="#" className="hover:text-[#141420] transition-colors">Privacy</a>
+            <a href="#" className="hover:text-[#141420] transition-colors">Docs</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
-
-

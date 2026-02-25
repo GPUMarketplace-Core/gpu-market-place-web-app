@@ -324,3 +324,280 @@ textarea::placeholder {
 .step-group:hover .step-num {
   color: var(--lp-accent);
 }
+
+/* ── App Shell (authenticated inner pages) ── */
+
+.app-shell {
+  --lp-bg: #faf9f7;
+  --lp-ink: #141420;
+  --lp-secondary: #55556a;
+  --lp-dim: #8c8c9e;
+  --lp-accent: #4f46e5;
+  --lp-accent-hover: #4338ca;
+  --lp-border: #e5e2dc;
+  --lp-surface: #f0eee9;
+  --lp-emerald: #059669;
+  background-color: var(--lp-bg);
+  color: var(--lp-ink);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+/* Sidebar */
+.app-sidebar {
+  width: 260px;
+  background: white;
+  border-right: 1px solid var(--lp-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  animation: lp-slide-right 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--lp-secondary);
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  width: 100%;
+  text-align: left;
+}
+.sidebar-link:hover {
+  color: var(--lp-ink);
+  background: var(--lp-surface);
+}
+.sidebar-link.active {
+  color: var(--lp-accent);
+  background: rgba(79, 70, 229, 0.06);
+  font-weight: 600;
+}
+.sidebar-link.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: var(--lp-accent);
+  border-radius: 0 4px 4px 0;
+}
+
+/* Inner page card */
+.ip-card {
+  background: white;
+  border: 1px solid var(--lp-border);
+  border-radius: 16px;
+  transition: box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ip-card:hover {
+  box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+.ip-card-static {
+  background: white;
+  border: 1px solid var(--lp-border);
+  border-radius: 16px;
+}
+
+/* Stat card */
+.ip-stat {
+  background: white;
+  border: 1px solid var(--lp-border);
+  border-radius: 16px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.ip-stat:hover {
+  border-color: var(--lp-accent);
+  box-shadow: 0 0 0 1px var(--lp-accent);
+}
+
+/* Accent stat card (colored) */
+.ip-stat-accent {
+  background: var(--lp-ink);
+  border: 1px solid transparent;
+  border-radius: 16px;
+  color: white;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s;
+}
+.ip-stat-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -6px rgba(20, 20, 32, 0.25);
+}
+
+/* Data row */
+.ip-row {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--lp-border);
+  transition: background-color 0.2s;
+}
+.ip-row:last-child {
+  border-bottom: none;
+}
+.ip-row:hover {
+  background-color: rgba(240, 238, 233, 0.5);
+}
+
+/* Tab content animation */
+.tab-content {
+  animation: lp-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Section label */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--lp-dim);
+}
+
+/* Modal */
+.ip-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 32, 0.4);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: lp-fade 0.2s ease both;
+}
+.ip-modal {
+  background: white;
+  border: 1px solid var(--lp-border);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  animation: lp-scale 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+/* Button styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  background: var(--lp-accent);
+  border-radius: 9999px;
+  transition: all 0.2s;
+}
+.btn-primary:hover {
+  background: var(--lp-accent-hover);
+  box-shadow: 0 4px 20px -4px rgba(79, 70, 229, 0.4);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--lp-ink);
+  background: white;
+  border: 1px solid var(--lp-border);
+  border-radius: 9999px;
+  transition: all 0.2s;
+}
+.btn-secondary:hover {
+  border-color: var(--lp-ink);
+}
+
+.btn-sm {
+  padding: 6px 16px;
+  font-size: 13px;
+}
+
+/* Progress bar */
+.ip-progress {
+  height: 6px;
+  background: var(--lp-surface);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.ip-progress-bar {
+  height: 100%;
+  background: var(--lp-accent);
+  border-radius: 9999px;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* FAQ accordion */
+.ip-accordion {
+  background: var(--lp-surface);
+  border-radius: 12px;
+  transition: box-shadow 0.2s;
+}
+.ip-accordion:hover {
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+}
+.ip-accordion summary {
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  font-size: 14px;
+}
+.ip-accordion summary::-webkit-details-marker {
+  display: none;
+}
+.ip-accordion[open] summary .chevron-icon {
+  transform: rotate(180deg);
+}
+.ip-accordion .chevron-icon {
+  transition: transform 0.2s;
+}
+
+/* Dot pattern background */
+.dot-pattern {
+  background-image: radial-gradient(circle, var(--lp-border) 0.8px, transparent 0.8px);
+  background-size: 20px 20px;
+}
+
+/* Dark section (reusable) */
+.ip-dark-section {
+  background: var(--lp-ink);
+  color: white;
+  border-radius: 20px;
+}
+
+/* Status badge */
+.ip-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Earnings bar chart */
+.ip-bar {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  background: rgba(79, 70, 229, 0.6);
+  transition: background 0.2s, height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ip-bar:hover {
+  background: var(--lp-accent);
+}

@@ -82,10 +82,10 @@ export default function ProviderDashboard() {
     // Initial fetch
     fetchNodes();
 
-    // Poll every 10 seconds for node status updates
+    // Poll every 5 minutes for node status updates
     const intervalId = setInterval(() => {
       fetchNodes();
-    }, 10000); // 10 seconds
+    }, 300000); // 5 minutes
 
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
@@ -856,7 +856,7 @@ export default function ProviderDashboard() {
                       Download for Windows
                       <span className="text-sm font-normal text-violet-500 ml-2">v1.0.0</span>
                     </a>
-                    <p className="text-white/60 text-sm mt-3">Windows 10/11 • 64-bit • ~45 MB</p>
+                    <p className="text-white/60 text-sm mt-3">Windows 10/11 • 64-bit • ~405 MB</p>
                   </div>
                   <div className="hidden md:block">
                     <div className="w-48 h-48 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center border border-white/20">

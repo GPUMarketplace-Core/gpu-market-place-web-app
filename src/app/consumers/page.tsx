@@ -151,10 +151,10 @@ export default function ConsumerDashboard() {
     // Initial fetch
     fetchProviders();
 
-    // Poll every 10 seconds for provider status updates
+    // Poll every 5 minutes for provider status updates
     const intervalId = setInterval(() => {
       fetchProviders();
-    }, 10000); // 10 seconds
+    }, 300000); // 5 minutes
 
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
@@ -202,7 +202,7 @@ export default function ConsumerDashboard() {
     if ((activeTab === 'jobs' || activeTab === 'dashboard') && accessToken) {
       const interval = setInterval(() => {
         fetchJobs();
-      }, hasActiveJobs ? 3000 : 10000); // 3s if active jobs, 10s otherwise
+      }, hasActiveJobs ? 30000 : 300000); // 30s if active jobs, 5 min otherwise
       
       return () => clearInterval(interval);
     }

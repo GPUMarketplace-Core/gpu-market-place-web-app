@@ -28,7 +28,9 @@ export default function AuthGate() {
     try {
       const res = await me(token);
       if (res.status === 404) {
+        // New user — store token and show signup form
         setAuthState({ provider: 'google', accessToken: token, user: null });
+        setAuthMode('signup');
       } else if (res.ok) {
         const data = await res.json();
         setAuthState({ provider: 'google', accessToken: token, user: data.user });
@@ -139,49 +141,71 @@ export default function AuthGate() {
               className="text-[clamp(1.8rem,4vw,2.4rem)] leading-[1.1] tracking-[-0.02em] mb-3"
               style={{ fontFamily: 'var(--font-instrument-serif), Georgia, serif' }}
             >
-              {authMode === 'signup' ? 'Create your account' : 'Welcome back'}
+              {accessToken && !isAuthed
+                ? 'Complete your profile'
+                : authMode === 'signup' ? 'Create your account' : 'Welcome back'}
             </h1>
             <p className="text-[15px] text-[#55556a]">
-              {authMode === 'signup'
-                ? 'Get started with GPU compute in seconds'
-                : 'Sign in to your OpenGPU account'}
+              {accessToken && !isAuthed
+                ? 'Just a few more details to get started'
+                : authMode === 'signup'
+                  ? 'Get started with GPU compute in seconds'
+                  : 'Sign in to your OpenGPU account'}
             </p>
           </div>
 
-          {/* Auth mode tabs */}
-          <div
-            className="flex items-center rounded-xl bg-[#f0eee9] p-1 mb-8"
-            style={{ animation: 'lp-reveal 0.6s cubic-bezier(0.22,1,0.36,1) 0.08s both' }}
-          >
-            <button
-              onClick={() => setAuthMode('signup')}
-              className={`flex-1 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200 ${
-                authMode === 'signup'
-                  ? 'bg-white text-[#141420] shadow-sm'
-                  : 'text-[#8c8c9e] hover:text-[#55556a]'
-              }`}
+          {/* Auth mode tabs — hide when signup form is showing */}
+          {!(accessToken && !isAuthed) && (
+            <div
+              className="flex items-center rounded-xl bg-[#f0eee9] p-1 mb-8"
+              style={{ animation: 'lp-reveal 0.6s cubic-bezier(0.22,1,0.36,1) 0.08s both' }}
             >
-              Sign Up
-            </button>
-            <button
-              onClick={() => setAuthMode('login')}
-              className={`flex-1 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200 ${
-                authMode === 'login'
-                  ? 'bg-white text-[#141420] shadow-sm'
-                  : 'text-[#8c8c9e] hover:text-[#55556a]'
-              }`}
-            >
-              Sign In
-            </button>
-          </div>
+              <button
+                onClick={() => setAuthMode('signup')}
+                className={`flex-1 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200 ${
+                  authMode === 'signup'
+                    ? 'bg-white text-[#141420] shadow-sm'
+                    : 'text-[#8c8c9e] hover:text-[#55556a]'
+                }`}
+              >
+                Sign Up
+              </button>
+              <button
+                onClick={() => setAuthMode('login')}
+                className={`flex-1 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200 ${
+                  authMode === 'login'
+                    ? 'bg-white text-[#141420] shadow-sm'
+                    : 'text-[#8c8c9e] hover:text-[#55556a]'
+                }`}
+              >
+                Sign In
+              </button>
+            </div>
+          )}
 
-          {/* Google OAuth button */}
-          <div style={{ animation: 'lp-reveal 0.6s cubic-bezier(0.22,1,0.36,1) 0.16s both' }}>
-            <GoogleSignInButton onToken={handleToken} />
-          </div>
+          {/* Google OAuth button — hide once we already have a token */}
+          {!(accessToken && !isAuthed) && (
+            <div style={{ animation: 'lp-reveal 0.6s cubic-bezier(0.22,1,0.36,1) 0.16s both' }}>
+              <GoogleSignInButton onToken={handleToken} />
+            </div>
+          )}
+
+          {/* Checking account spinner */}
+          {busy && !accessToken && (
+            <div
+              className="mt-8 bg-white border border-[#e5e2dc] rounded-2xl p-7 text-center"
+              style={{ animation: 'lp-reveal 0.5s cubic-bezier(0.22,1,0.36,1) both' }}
+            >
+              <svg className="animate-spin h-6 w-6 mx-auto mb-3 text-[#4f46e5]" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <div className="text-[14px] text-[#55556a]">Checking your account...</div>
+            </div>
+          )}
 
           {/* Signup completion form */}
-          {accessToken && !isAuthed && authMode === 'signup' && (
+          {accessToken && !isAuthed && (
             <div
               className="mt-8 bg-white border border-[#e5e2dc] rounded-2xl p-7"
               style={{ animation: 'lp-reveal 0.5s cubic-bezier(0.22,1,0.36,1) both' }}
@@ -327,6 +351,14 @@ export default function AuthGate() {
                     <span className="text-[13px] text-red-700">{error}</span>
                   </div>
                 )}
+
+                {/* Use different account */}
+                <button
+                  onClick={() => { clear(); setError(null); }}
+                  className="w-full text-center text-[13px] text-[#8c8c9e] hover:text-[#55556a] transition-colors"
+                >
+                  Use a different Google account
+                </button>
               </div>
             </div>
           )}

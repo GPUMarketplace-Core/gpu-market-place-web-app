@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
-import { useAuth } from '../providers/AuthProvider';
+import React, { useEffect, useRef, useState } from 'react';
 
 declare global {
   interface Window {
@@ -10,57 +9,98 @@ declare global {
 }
 
 interface Props {
-  onToken?: (token: string) => void;
+  onToken?: (token: string) => void | Promise<void>;
 }
 
 export default function GoogleSignInButton({ onToken }: Props) {
-  const { setAuthState, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [ready, setReady] = useState(false);
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string | undefined;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const onTokenRef = useRef(onToken);
 
-  const requestAccessToken = useCallback(() => {
-    if (!clientId) {
-      console.error('Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID');
-      return;
+  useEffect(() => {
+    onTokenRef.current = onToken;
+  }, [onToken]);
+
+  useEffect(() => {
+    if (!clientId) return;
+
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    function tryInit() {
+      if (cancelled) return false;
+      if (!window.google?.accounts?.id || !containerRef.current) return false;
+      const width = containerRef.current.offsetWidth;
+      if (!width) return false;
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response: any) => {
+          setLoading(true);
+          try {
+            if (onTokenRef.current) await onTokenRef.current(response.credential);
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+
+      window.google.accounts.id.renderButton(containerRef.current, {
+        theme: 'outline',
+        size: 'large',
+        text: 'continue_with',
+        shape: 'rectangular',
+        width: width,
+        logo_alignment: 'center',
+      });
+
+      setReady(true);
+      return true;
     }
-    if (!window.google?.accounts?.oauth2) {
-      console.error('Google Identity Services not loaded');
-      return;
-    }
-    setLoading(true);
-    const tokenClient = window.google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: 'openid email profile',
-      callback: async (resp: any) => {
-        try {
-          const token = resp.access_token;
-          if (onToken) onToken(token);
-          await refreshUser(token);
-          setAuthState({ provider: 'google', accessToken: token, user: null });
-        } finally {
-          setLoading(false);
-        }
-      },
+
+    requestAnimationFrame(() => {
+      if (cancelled || tryInit()) return;
+      intervalId = setInterval(() => {
+        if (tryInit() && intervalId) clearInterval(intervalId);
+      }, 200);
     });
-    tokenClient.requestAccessToken();
-  }, [clientId, onToken, refreshUser, setAuthState]);
+
+    return () => {
+      cancelled = true;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [clientId]);
 
   return (
-    <button
-      onClick={requestAccessToken}
-      disabled={loading}
-      className="w-full h-[52px] rounded-xl border border-[#e5e2dc] bg-white hover:bg-[#faf9f7] text-[14px] flex items-center justify-center gap-3 transition-all duration-200 hover:border-[#d0cdc6] active:scale-[0.99]"
-      style={{ fontFamily: 'var(--font-dm-sans)' }}
-    >
-      <svg viewBox="0 0 48 48" width="18" height="18">
-        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C33.744,6.053,29.116,4,24,4C12.955,4,4,12.955,4,24 s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
-        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,16.108,18.961,14,24,14c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657 C33.744,6.053,29.116,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
-        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.196l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.189,0-9.594-3.317-11.27-7.946l-6.522,5.025C9.5,39.556,16.227,44,24,44z"/>
-        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.083,5.566 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.657,44,35,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
-      </svg>
-      <span className="font-medium text-[#141420]">
-        {loading ? 'Signing in...' : 'Continue with Google'}
-      </span>
-    </button>
+    <div className="w-full relative" style={{ minHeight: '44px' }}>
+      {/* Always in normal flow so offsetWidth is accurate; centered because Google caps button width at 400px */}
+      <div ref={containerRef} className="w-full flex justify-center" />
+
+      {/* Overlay: loading state */}
+      {loading && (
+        <div
+          className="absolute inset-0 rounded-lg border border-[#e5e2dc] bg-white text-[14px] flex items-center justify-center gap-3"
+          style={{ fontFamily: 'var(--font-dm-sans)' }}
+        >
+          <svg className="animate-spin h-4 w-4 text-[#55556a]" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          <span className="font-medium text-[#141420]">Signing in...</span>
+        </div>
+      )}
+
+      {/* Overlay: placeholder while GIS loads */}
+      {!ready && !loading && (
+        <div
+          className="absolute inset-0 rounded-lg border border-[#e5e2dc] bg-[#faf9f7] text-[14px] flex items-center justify-center gap-3 animate-pulse"
+          style={{ fontFamily: 'var(--font-dm-sans)' }}
+        >
+          <span className="text-[#8c8c9e]">Loading...</span>
+        </div>
+      )}
+    </div>
   );
 }

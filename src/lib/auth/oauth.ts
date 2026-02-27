@@ -15,19 +15,39 @@ export interface GitHubUser {
 }
 
 /**
- * Verify Google OAuth token and get user info
+ * Verify Google OAuth token and get user info.
+ * Supports both access tokens (opaque) and JWT ID tokens (from Sign In With Google).
  */
 export async function verifyGoogleToken(token: string): Promise<GoogleTokenInfo | null> {
   try {
-    const { data } = await axios.get<GoogleTokenInfo>(
-      `https://www.googleapis.com/oauth2/v3/userinfo`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    const isJwt = token.split('.').length === 3;
+
+    if (isJwt) {
+      // JWT ID token — verify via Google's tokeninfo endpoint
+      const { data } = await axios.get<{ email: string; name: string; picture: string; sub: string; aud: string }>(
+        'https://oauth2.googleapis.com/tokeninfo',
+        { params: { id_token: token } }
+      );
+      // Verify the token was issued for our app
+      const expectedClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      if (expectedClientId && data.aud !== expectedClientId) {
+        console.error('Google ID token audience mismatch');
+        return null;
       }
-    );
-    return data;
+      return {
+        email: data.email,
+        name: data.name,
+        picture: data.picture,
+        sub: data.sub,
+      };
+    } else {
+      // Access token — verify via userinfo endpoint
+      const { data } = await axios.get<GoogleTokenInfo>(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return data;
+    }
   } catch (error) {
     console.error('Google token verification failed:', error);
     return null;

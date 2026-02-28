@@ -29,7 +29,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "OpenGPU — Decentralized GPU Marketplace",
+  title: "ComputeX — Decentralized GPU Marketplace",
   description: "Rent powerful GPUs by the hour or monetize your hardware. On-demand compute for AI, rendering, and research.",
 };
 

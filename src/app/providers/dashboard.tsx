@@ -244,9 +244,9 @@ export default function ProviderDashboard() {
         <div className="p-6 flex-1 flex flex-col">
           <Link href="/" className="flex items-center gap-2.5 mb-10 group">
             <div className="h-9 w-9 rounded-xl bg-[var(--lp-ink)] flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-              <span className="text-[10px] font-bold text-[var(--lp-bg)] font-serif">OG</span>
+              <span className="text-[10px] font-bold text-[var(--lp-bg)] font-serif">CX</span>
             </div>
-            <span className="text-lg font-semibold tracking-tight">OpenGPU</span>
+            <span className="text-lg font-semibold tracking-tight">ComputeX</span>
           </Link>
 
           <div className="section-label mb-3">Overview</div>
@@ -757,10 +757,10 @@ export default function ProviderDashboard() {
                       Quick Start Guide
                     </div>
                     <h2 className="font-serif text-[2rem] md:text-[2.5rem] text-white mb-4">
-                      OpenGPU Provider Agent
+                      ComputeX Provider Agent
                     </h2>
                     <p className="text-[15px] text-white/70 mb-6 max-w-xl">
-                      Transform your Windows machine into a GPU computing powerhouse. Start earning by sharing your GPU resources with the OpenGPU network.
+                      Transform your Windows machine into a GPU computing powerhouse. Start earning by sharing your GPU resources with the ComputeX network.
                     </p>
                     <a
                       href="https://github.com/GPUMarketplace-Core/providers-agent/releases/latest/download/GPU.Marketplace.Provider.Setup.1.0.0.exe"
@@ -805,7 +805,7 @@ export default function ProviderDashboard() {
                     <div className="flex-1">
                       <h4 className="font-semibold text-[15px] mb-2">Download the Installer</h4>
                       <p className="text-[13px] text-[var(--lp-secondary)] mb-3">
-                        Click the download button above to get the OpenGPU Provider Agent installer. The file will be saved to your Downloads folder.
+                        Click the download button above to get the ComputeX Provider Agent installer. The file will be saved to your Downloads folder.
                       </p>
                       <div className="flex items-center gap-2 text-[12px] text-[var(--lp-accent)]">
                         {icons.info}
@@ -868,7 +868,7 @@ export default function ProviderDashboard() {
                     <div className="flex-1">
                       <h4 className="font-semibold text-[15px] mb-2">Configure the Provider Agent</h4>
                       <p className="text-[13px] text-[var(--lp-secondary)] mb-3">
-                        Launch the OpenGPU Provider Agent from your desktop or Start menu. Go to Settings within the client and paste your Provider Agent Token to authenticate.
+                        Launch the ComputeX Provider Agent from your desktop or Start menu. Go to Settings within the client and paste your Provider Agent Token to authenticate.
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="bg-[var(--lp-surface)] border border-[var(--lp-border)] rounded-xl p-4">
@@ -952,7 +952,7 @@ export default function ProviderDashboard() {
                       },
                       {
                         q: 'Can I use my PC while providing?',
-                        a: 'Yes! The agent runs in the background. However, GPU-intensive tasks may affect job performance. For best earnings, dedicate your GPU to OpenGPU.',
+                        a: 'Yes! The agent runs in the background. However, GPU-intensive tasks may affect job performance. For best earnings, dedicate your GPU to ComputeX.',
                       },
                       {
                         q: 'Is my data secure?',
@@ -990,11 +990,11 @@ export default function ProviderDashboard() {
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <a href="mailto:support@opengpu.io" className="btn-secondary !bg-white/10 !text-white !border-white/20 hover:!bg-white/20">
+                    <a href="mailto:support@computex.space" className="btn-secondary !bg-white/10 !text-white !border-white/20 hover:!bg-white/20">
                       {icons.mail}
                       Email Support
                     </a>
-                    <a href="https://discord.gg/opengpu" target="_blank" rel="noopener noreferrer" className="btn-primary">
+                    <a href="https://discord.gg/computex" target="_blank" rel="noopener noreferrer" className="btn-primary">
                       Join Discord
                     </a>
                   </div>

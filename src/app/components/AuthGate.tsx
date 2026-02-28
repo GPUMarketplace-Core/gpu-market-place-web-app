@@ -117,10 +117,10 @@ export default function AuthGate() {
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="h-9 w-9 rounded-xl bg-[#141420] flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
             <span className="text-[10px] font-bold text-[#faf9f7]" style={{ fontFamily: 'var(--font-instrument-serif)' }}>
-              OG
+              CX
             </span>
           </div>
-          <span className="text-lg font-semibold tracking-tight">OpenGPU</span>
+          <span className="text-lg font-semibold tracking-tight">ComputeX</span>
         </Link>
 
         <Link
@@ -150,7 +150,7 @@ export default function AuthGate() {
                 ? 'Just a few more details to get started'
                 : authMode === 'signup'
                   ? 'Get started with GPU compute in seconds'
-                  : 'Sign in to your OpenGPU account'}
+                  : 'Sign in to your ComputeX account'}
             </p>
           </div>
 
@@ -419,7 +419,7 @@ export default function AuthGate() {
       {/* ── Footer ── */}
       <footer className="max-w-[1240px] w-full mx-auto px-6 lg:px-10 border-t border-[#e5e2dc]">
         <div className="flex items-center justify-between py-6">
-          <span className="text-[12px] text-[#8c8c9e]">&copy; {new Date().getFullYear()} OpenGPU</span>
+          <span className="text-[12px] text-[#8c8c9e]">&copy; {new Date().getFullYear()} ComputeX</span>
           <div className="flex items-center gap-6 text-[12px] text-[#8c8c9e]">
             <a href="#" className="hover:text-[#141420] transition-colors">Terms</a>
             <a href="#" className="hover:text-[#141420] transition-colors">Privacy</a>

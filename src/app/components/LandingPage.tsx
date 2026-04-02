@@ -130,12 +130,16 @@ export default function LandingPage() {
       <nav className="max-w-[1240px] mx-auto px-6 lg:px-10 flex items-center justify-between h-[72px]">
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="h-9 w-9 rounded-xl bg-[var(--lp-ink)] flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-            <span className="text-[10px] font-bold text-[var(--lp-bg)] font-serif">OG</span>
+            <span className="text-[10px] font-bold text-[var(--lp-bg)] font-serif">CX</span>
           </div>
-          <span className="text-lg font-semibold tracking-tight">OpenGPU</span>
+          <span className="text-lg font-semibold tracking-tight">ComputeX</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-9 text-[14px] text-[var(--lp-secondary)]">
+          <Link href="/vision" className="lp-nav-link text-[var(--lp-accent)] flex items-center gap-1.5">
+            Vision
+            <span className="px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider bg-[var(--lp-accent)] text-white rounded-full leading-none">New</span>
+          </Link>
           <a href="#features" className="lp-nav-link">Features</a>
           <a href="#marketplace" className="lp-nav-link">Marketplace</a>
           <a href="#how" className="lp-nav-link">How It Works</a>
@@ -563,7 +567,7 @@ export default function LandingPage() {
             Ready to compute?
           </h2>
           <p className="text-[var(--lp-secondary)] text-[16px] leading-[1.6] max-w-[440px] mx-auto mb-8">
-            Whether you need GPU power or have it to spare — OpenGPU connects you in seconds.
+            Whether you need GPU power or have it to spare — ComputeX connects you in seconds.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
@@ -581,9 +585,9 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between py-8 gap-4">
           <div className="flex items-center gap-2.5">
             <div className="h-7 w-7 rounded-lg bg-[var(--lp-ink)] flex items-center justify-center">
-              <span className="text-[8px] font-bold text-[var(--lp-bg)] font-serif">OG</span>
+              <span className="text-[8px] font-bold text-[var(--lp-bg)] font-serif">CX</span>
             </div>
-            <span className="text-sm text-[var(--lp-dim)]">&copy; {new Date().getFullYear()} OpenGPU</span>
+            <span className="text-sm text-[var(--lp-dim)]">&copy; {new Date().getFullYear()} ComputeX</span>
           </div>
           <div className="flex items-center gap-8 text-sm text-[var(--lp-dim)]">
             <a href="#" className="hover:text-[var(--lp-ink)] transition-colors">Terms</a>

@@ -258,9 +258,9 @@ export default function ConsumerDashboard() {
         <div className="p-6 flex-1 flex flex-col">
           <Link href="/" className="flex items-center gap-2.5 mb-10 group">
             <div className="h-9 w-9 rounded-xl bg-[var(--lp-ink)] flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-              <span className="text-[10px] font-bold text-[var(--lp-bg)] font-serif">OG</span>
+              <span className="text-[10px] font-bold text-[var(--lp-bg)] font-serif">CX</span>
             </div>
-            <span className="text-lg font-semibold tracking-tight">OpenGPU</span>
+            <span className="text-lg font-semibold tracking-tight">ComputeX</span>
           </Link>
 
           <div className="section-label mb-3">Overview</div>
